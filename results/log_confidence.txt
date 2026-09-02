@@ -1,0 +1,49 @@
+==========================================================================
+  EXPERIMENT 6 -- CAN THE MODEL TELL WHEN IT IS FAILING?
+==========================================================================
+  models are trained on the 'realistic' channel and then tested on all three
+  loaded 'ideal': 26,250 samples
+  loaded 'realistic': 26,250 samples
+  loaded 'severe': 26,250 samples
+
+  [1/4] CNN (image) -- training on 'realistic'
+      ideal      acc 0.9827  conf 0.9848  overconf +0.0021  AUROC 0.980
+      realistic  acc 0.9827  conf 0.9852  overconf +0.0025  AUROC 0.978
+      severe     acc 0.9117  conf 0.9589  overconf +0.0472  AUROC 0.945
+
+  [2/4] MLP (features) -- the controlled comparison
+      ideal      acc 0.9144  conf 0.9171  overconf +0.0027  AUROC 0.948
+      realistic  acc 0.9340  conf 0.9264  overconf -0.0076  AUROC 0.953
+      severe     acc 0.8866  conf 0.8994  overconf +0.0128  AUROC 0.923
+
+  [3/4] SVM (features)
+      fitted with Platt scaling in 5s
+      ideal      acc 0.9120  conf 0.9214  overconf +0.0093  AUROC 0.907
+      realistic  acc 0.9391  conf 0.9370  overconf -0.0021  AUROC 0.942
+      severe     acc 0.7615  conf 0.5546  overconf -0.2069  AUROC 0.767
+
+  [4/4] Confidence thresholding on the unseen 'severe' channel
+      (if the monitor abstains below a threshold, is the rest safe?)
+      cnn:
+        thr 0.00  keeps 100.0% of samples, accuracy on those 0.9117
+        thr 0.50  keeps  99.5% of samples, accuracy on those 0.9151
+        thr 0.70  keeps  94.9% of samples, accuracy on those 0.9406
+        thr 0.90  keeps  87.5% of samples, accuracy on those 0.9714
+        thr 0.95  keeps  82.8% of samples, accuracy on those 0.9831
+        thr 0.99  keeps  72.9% of samples, accuracy on those 0.9963
+      mlp:
+        thr 0.00  keeps 100.0% of samples, accuracy on those 0.8866
+        thr 0.50  keeps  96.7% of samples, accuracy on those 0.9032
+        thr 0.70  keeps  85.3% of samples, accuracy on those 0.9496
+        thr 0.90  keeps  69.4% of samples, accuracy on those 0.9946
+        thr 0.95  keeps  64.4% of samples, accuracy on those 0.9985
+        thr 0.99  keeps  58.6% of samples, accuracy on those 0.9999
+      svm:
+        thr 0.00  keeps 100.0% of samples, accuracy on those 0.7615
+        thr 0.50  keeps  53.9% of samples, accuracy on those 0.9097
+        thr 0.70  keeps  26.4% of samples, accuracy on those 0.9271
+        thr 0.90  keeps   5.3% of samples, accuracy on those 0.9655
+        thr 0.95  keeps   2.1% of samples, accuracy on those 0.9963
+        thr 0.99  keeps   0.3% of samples, accuracy on those 1.0000
+
+  saved -> D:\research paper\results\exp_confidence.json

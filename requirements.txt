@@ -1,0 +1,29 @@
+# requirements.txt
+# CNN-Based Modulation Format Identification for Optical Performance Monitoring
+#
+# Recreate this environment later with:
+#     python -m venv venv
+#     venv\Scripts\activate            (Windows)
+#     source venv/bin/activate         (Linux / macOS)
+#     pip install -r requirements.txt
+#
+# Tested on Python 3.12.10, Windows 11, Intel Core i7-1255U.
+# CPU ONLY -- no GPU is needed anywhere in this project.
+# The versions below are the exact ones used to produce the results reported
+# in the paper, so pinning them guarantees the numbers are reproducible.
+
+# --- core numerical stack ---
+numpy==2.3.4
+scipy==1.16.3
+
+# --- classical machine learning: the SVM and k-NN baselines ---
+scikit-learn==1.7.2
+
+# --- deep learning: the CNN ---
+# This is the CPU build. If pip tries to pull a CUDA build on a machine with
+# no NVIDIA GPU, install it explicitly with:
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0
+
+# --- plotting ---
+matplotlib==3.11.0

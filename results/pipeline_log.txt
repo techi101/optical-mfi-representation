@@ -1,0 +1,39 @@
+[05:11:48] ================================================================
+[05:11:48] PIPELINE START
+[05:11:48] ================================================================
+[05:11:48] waiting for train_and_evaluate.py to finish (polling for results/main_results.json)...
+[06:02:53] main comparison finished
+[06:02:53] START generalisation study
+
+----- generalisation study stdout -----
+========================================================================
+  EXPERIMENT 1 -- GENERALISATION TO UNSEEN OSNR LEVELS
+========================================================================
+  train OSNR : [6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+  test  OSNR : [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]  (never seen during training)
+
+  --- seed 42 ---
+    CNN (image)      unseen-OSNR accuracy = 0.9738
+    MLP (features)   unseen-OSNR accuracy = 0.9305
+    SVM (features)   unseen-OSNR accuracy = 0.9306
+
+  --- seed 43 ---
+    CNN (image)      unseen-OSNR accuracy = 0.9768
+    MLP (features)   unseen-OSNR accuracy = 0.9259
+    SVM (features)   unseen-OSNR accuracy = 0.9310
+
+  --- seed 44 ---
+    CNN (image)      unseen-OSNR accuracy = 0.9731
+    MLP (features)   unseen-OSNR accuracy = 0.9282
+    SVM (features)   unseen-OSNR accuracy = 0.9300
+
+  CNN (image)      97.45 +/- 0.16 %
+
+  MLP (features)   92.82 +/- 0.19 %
+
+  SVM (features)   93.05 +/- 0.04 %
+  saved -> D:\research paper\results\exp_generalise.json
+
+  total time: 32.8 min
+[06:35:45] DONE  generalisation study  (32.9 min)
+[06:35:45] START architecture ablation

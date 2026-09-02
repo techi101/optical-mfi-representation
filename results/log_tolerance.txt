@@ -1,0 +1,82 @@
+==========================================================================
+  EXPERIMENT 7 -- IMPAIRMENT TOLERANCE BUDGET
+==========================================================================
+  models trained on the 'realistic' channel:
+     residual_phase_deg       1.0
+     laser_linewidth_hz       100000.0
+     freq_offset_hz           10000000.0
+     iq_gain_imbalance_db     0.3
+     iq_phase_skew_deg        2.0
+     residual_cd_ps_nm        10.0
+
+  each impairment is then swept alone, others held at the above
+
+  training the CNN once (18,375 images)...
+  fitting the SVM once...
+
+  --- sweeping laser linewidth ---
+           0.000 kHz    CNN 0.9805   SVM 0.9270   (84s)
+          50.000 kHz    CNN 0.9914   SVM 0.9314   (38s)
+         100.000 kHz    CNN 0.9946   SVM 0.9311   (38s)  <- trained here
+         250.000 kHz    CNN 0.9908   SVM 0.9305   (38s)
+         500.000 kHz    CNN 0.9890   SVM 0.9311   (38s)
+        1000.000 kHz    CNN 0.9873   SVM 0.9314   (38s)
+        2000.000 kHz    CNN 0.9868   SVM 0.9319   (38s)
+
+  --- sweeping residual frequency offset ---
+           0.000 MHz    CNN 0.9865   SVM 0.9314   (56s)
+           5.000 MHz    CNN 0.9889   SVM 0.9314   (66s)
+          10.000 MHz    CNN 0.9946   SVM 0.9311   (65s)  <- trained here
+          25.000 MHz    CNN 0.9827   SVM 0.9298   (66s)
+          50.000 MHz    CNN 0.9500   SVM 0.9233   (65s)
+         100.000 MHz    CNN 0.4237   SVM 0.3970   (66s)
+         200.000 MHz    CNN 0.2003   SVM 0.3773   (65s)
+
+  --- sweeping I/Q gain imbalance ---
+           0.000 dB     CNN 0.9879   SVM 0.9278   (65s)
+           0.150 dB     CNN 0.9892   SVM 0.9310   (65s)
+           0.300 dB     CNN 0.9946   SVM 0.9311   (66s)  <- trained here
+           0.600 dB     CNN 0.9890   SVM 0.9290   (65s)
+           1.000 dB     CNN 0.9854   SVM 0.8203   (65s)
+           1.500 dB     CNN 0.9784   SVM 0.4990   (65s)
+           2.500 dB     CNN 0.9548   SVM 0.2035   (65s)
+
+  --- sweeping I/Q phase skew ---
+           0.000 deg    CNN 0.9873   SVM 0.9283   (66s)
+           1.000 deg    CNN 0.9917   SVM 0.9311   (65s)
+           2.000 deg    CNN 0.9946   SVM 0.9311   (65s)  <- trained here
+           4.000 deg    CNN 0.9894   SVM 0.9270   (66s)
+           6.000 deg    CNN 0.9867   SVM 0.8781   (65s)
+           9.000 deg    CNN 0.9814   SVM 0.7092   (65s)
+          14.000 deg    CNN 0.9635   SVM 0.2010   (65s)
+
+  --- sweeping residual dispersion ---
+           0.000 ps/nm  CNN 0.9873   SVM 0.9311   (61s)
+           5.000 ps/nm  CNN 0.9890   SVM 0.9317   (65s)
+          10.000 ps/nm  CNN 0.9946   SVM 0.9311   (65s)  <- trained here
+          25.000 ps/nm  CNN 0.9859   SVM 0.9306   (65s)
+          50.000 ps/nm  CNN 0.9724   SVM 0.9263   (65s)
+          90.000 ps/nm  CNN 0.8835   SVM 0.9037   (66s)
+         150.000 ps/nm  CNN 0.5489   SVM 0.8014   (66s)
+
+==========================================================================
+  TOLERANCE BUDGET -- largest tested deviation still meeting the target
+==========================================================================
+
+  target accuracy 95%
+  impairment                          CNN limit        SVM limit
+  laser linewidth                    2000.0 kHz               --
+  residual frequency offset            50.0 MHz               --
+  I/Q gain imbalance                     2.5 dB               --
+  I/Q phase skew                       14.0 deg               --
+  residual dispersion                50.0 ps/nm               --
+
+  target accuracy 90%
+  impairment                          CNN limit        SVM limit
+  laser linewidth                    2000.0 kHz       2000.0 kHz
+  residual frequency offset            50.0 MHz         50.0 MHz
+  I/Q gain imbalance                     2.5 dB           0.6 dB
+  I/Q phase skew                       14.0 deg          4.0 deg
+  residual dispersion                50.0 ps/nm       90.0 ps/nm
+
+  saved -> D:\research paper\results\exp_tolerance.json

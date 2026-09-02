@@ -1,0 +1,24 @@
+========================================================================
+  EXPERIMENT 4 -- ROBUSTNESS TO UNSEEN IMPAIRMENTS
+========================================================================
+
+  generating 'ideal' dataset (250 per class per OSNR)...
+  loaded 'ideal': 26,250 samples
+
+  generating 'realistic' dataset (250 per class per OSNR)...
+  loaded 'realistic': 26,250 samples
+
+  generating 'severe' dataset (250 per class per OSNR)...
+  loaded 'severe': 26,250 samples
+  train=ideal      test=ideal       CNN 0.9792   SVM 0.9302
+  train=ideal      test=realistic   CNN 0.9811   SVM 0.9094
+  train=ideal      test=severe      CNN 0.8978   SVM 0.2184
+  train=realistic  test=ideal       CNN 0.9827   SVM 0.9204
+  train=realistic  test=realistic   CNN 0.9827   SVM 0.9365
+  train=realistic  test=severe      CNN 0.9117   SVM 0.7198
+  train=severe     test=ideal       CNN 0.9239   SVM 0.5894
+  train=severe     test=realistic   CNN 0.9259   SVM 0.7947
+  train=severe     test=severe      CNN 0.9784   SVM 0.9403
+  saved -> D:\research paper\results\exp_robustness.json
+
+  total time: 29.7 min

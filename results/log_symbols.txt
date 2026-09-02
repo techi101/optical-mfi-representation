@@ -1,0 +1,29 @@
+========================================================================
+  EXPERIMENT 3 -- ACCURACY vs NUMBER OF SYMBOLS
+========================================================================
+
+  --- 128 symbols per image ---
+    CNN 0.9031   SVM 0.8519   (240s)
+    [checkpoint saved: 1 result(s)]
+
+  --- 256 symbols per image ---
+    CNN 0.9137   SVM 0.8828   (168s)
+    [checkpoint saved: 2 result(s)]
+
+  --- 512 symbols per image ---
+    CNN 0.9408   SVM 0.8976   (268s)
+    [checkpoint saved: 3 result(s)]
+
+  --- 1024 symbols per image ---
+    CNN 0.9543   SVM 0.9120   (175s)
+    [checkpoint saved: 4 result(s)]
+
+  --- 2048 symbols per image ---
+    CNN 0.9687   SVM 0.9276   (239s)
+    [checkpoint saved: 5 result(s)]
+
+  --- 4096 symbols per image ---
+    CNN 0.9784   SVM 0.9382   (258s)
+    [checkpoint saved: 6 result(s)]
+
+  total time: 22.5 min

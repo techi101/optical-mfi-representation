@@ -1,0 +1,8 @@
+[05:11:48] ================================================================
+[05:11:48] PIPELINE START
+[05:11:48] ================================================================
+[05:11:48] waiting for train_and_evaluate.py to finish (polling for results/main_results.json)...
+[06:02:53] main comparison finished
+[06:02:53] START generalisation study
+[06:35:45] DONE  generalisation study  (32.9 min)
+[06:35:45] START architecture ablation

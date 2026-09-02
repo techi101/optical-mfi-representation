@@ -1,0 +1,18 @@
+========================================================================
+  EXPERIMENT 2 -- ARCHITECTURE ABLATION
+========================================================================
+  training each variant on a fixed 20,000-image subsample
+  blocks=2  base_ch=16   acc=0.9794  params= 529,525  MACs=  5,833,024
+    [checkpoint saved: 1 result(s)]
+  blocks=3  base_ch=16   acc=0.9815  params= 285,941  MACs= 10,289,472
+    [checkpoint saved: 2 result(s)]
+  blocks=4  base_ch=16   acc=0.9822  params= 228,853  MACs= 14,876,992
+    [checkpoint saved: 3 result(s)]
+  blocks=3  base_ch=4    acc=0.9837  params=  67,457  MACs=    803,136
+    [checkpoint saved: 4 result(s)]
+  blocks=3  base_ch=8    acc=0.9711  params= 137,405  MACs=  2,785,600
+    [checkpoint saved: 5 result(s)]
+  blocks=3  base_ch=32   acc=0.9828  params= 617,573  MACs= 39,452,992
+    [checkpoint saved: 6 result(s)]
+
+  total time: 43.5 min

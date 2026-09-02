@@ -1,0 +1,311 @@
+{
+  "train_profile": "realistic",
+  "base": {
+    "residual_phase_deg": 1.0,
+    "laser_linewidth_hz": 100000.0,
+    "freq_offset_hz": 10000000.0,
+    "iq_gain_imbalance_db": 0.3,
+    "iq_phase_skew_deg": 2.0,
+    "residual_cd_ps_nm": 10.0
+  },
+  "seed": 42,
+  "n_per_class": 60,
+  "sweeps": {
+    "laser_linewidth_hz": {
+      "label": "laser linewidth",
+      "unit": "kHz",
+      "scale": 0.001,
+      "trained_at": 100000.0,
+      "points": [
+        {
+          "value": 0.0,
+          "display_value": 0.0,
+          "cnn_accuracy": 0.9804761904761905,
+          "svm_accuracy": 0.926984126984127
+        },
+        {
+          "value": 50000.0,
+          "display_value": 50.0,
+          "cnn_accuracy": 0.9914285714285714,
+          "svm_accuracy": 0.9314285714285714
+        },
+        {
+          "value": 100000.0,
+          "display_value": 100.0,
+          "cnn_accuracy": 0.9946031746031746,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 250000.0,
+          "display_value": 250.0,
+          "cnn_accuracy": 0.9907936507936508,
+          "svm_accuracy": 0.9304761904761905
+        },
+        {
+          "value": 500000.0,
+          "display_value": 500.0,
+          "cnn_accuracy": 0.9890476190476191,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 1000000.0,
+          "display_value": 1000.0,
+          "cnn_accuracy": 0.9873015873015873,
+          "svm_accuracy": 0.9314285714285714
+        },
+        {
+          "value": 2000000.0,
+          "display_value": 2000.0,
+          "cnn_accuracy": 0.9868253968253968,
+          "svm_accuracy": 0.9319047619047619
+        }
+      ]
+    },
+    "freq_offset_hz": {
+      "label": "residual frequency offset",
+      "unit": "MHz",
+      "scale": 1e-06,
+      "trained_at": 10000000.0,
+      "points": [
+        {
+          "value": 0.0,
+          "display_value": 0.0,
+          "cnn_accuracy": 0.9865079365079366,
+          "svm_accuracy": 0.9314285714285714
+        },
+        {
+          "value": 5000000.0,
+          "display_value": 5.0,
+          "cnn_accuracy": 0.9888888888888889,
+          "svm_accuracy": 0.9314285714285714
+        },
+        {
+          "value": 10000000.0,
+          "display_value": 10.0,
+          "cnn_accuracy": 0.9946031746031746,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 25000000.0,
+          "display_value": 25.0,
+          "cnn_accuracy": 0.9826984126984127,
+          "svm_accuracy": 0.9298412698412698
+        },
+        {
+          "value": 50000000.0,
+          "display_value": 50.0,
+          "cnn_accuracy": 0.95,
+          "svm_accuracy": 0.9233333333333333
+        },
+        {
+          "value": 100000000.0,
+          "display_value": 100.0,
+          "cnn_accuracy": 0.42365079365079367,
+          "svm_accuracy": 0.396984126984127
+        },
+        {
+          "value": 200000000.0,
+          "display_value": 200.0,
+          "cnn_accuracy": 0.2003174603174603,
+          "svm_accuracy": 0.3773015873015873
+        }
+      ]
+    },
+    "iq_gain_imbalance_db": {
+      "label": "I/Q gain imbalance",
+      "unit": "dB",
+      "scale": 1.0,
+      "trained_at": 0.3,
+      "points": [
+        {
+          "value": 0.0,
+          "display_value": 0.0,
+          "cnn_accuracy": 0.9879365079365079,
+          "svm_accuracy": 0.9277777777777778
+        },
+        {
+          "value": 0.15,
+          "display_value": 0.15,
+          "cnn_accuracy": 0.9892063492063492,
+          "svm_accuracy": 0.930952380952381
+        },
+        {
+          "value": 0.3,
+          "display_value": 0.3,
+          "cnn_accuracy": 0.9946031746031746,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 0.6,
+          "display_value": 0.6,
+          "cnn_accuracy": 0.9890476190476191,
+          "svm_accuracy": 0.929047619047619
+        },
+        {
+          "value": 1.0,
+          "display_value": 1.0,
+          "cnn_accuracy": 0.9853968253968254,
+          "svm_accuracy": 0.8203174603174603
+        },
+        {
+          "value": 1.5,
+          "display_value": 1.5,
+          "cnn_accuracy": 0.9784126984126984,
+          "svm_accuracy": 0.4990476190476191
+        },
+        {
+          "value": 2.5,
+          "display_value": 2.5,
+          "cnn_accuracy": 0.9547619047619048,
+          "svm_accuracy": 0.2034920634920635
+        }
+      ]
+    },
+    "iq_phase_skew_deg": {
+      "label": "I/Q phase skew",
+      "unit": "deg",
+      "scale": 1.0,
+      "trained_at": 2.0,
+      "points": [
+        {
+          "value": 0.0,
+          "display_value": 0.0,
+          "cnn_accuracy": 0.9873015873015873,
+          "svm_accuracy": 0.9282539682539682
+        },
+        {
+          "value": 1.0,
+          "display_value": 1.0,
+          "cnn_accuracy": 0.9917460317460317,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 2.0,
+          "display_value": 2.0,
+          "cnn_accuracy": 0.9946031746031746,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 4.0,
+          "display_value": 4.0,
+          "cnn_accuracy": 0.9893650793650793,
+          "svm_accuracy": 0.926984126984127
+        },
+        {
+          "value": 6.0,
+          "display_value": 6.0,
+          "cnn_accuracy": 0.9866666666666667,
+          "svm_accuracy": 0.878095238095238
+        },
+        {
+          "value": 9.0,
+          "display_value": 9.0,
+          "cnn_accuracy": 0.9814285714285714,
+          "svm_accuracy": 0.7092063492063492
+        },
+        {
+          "value": 14.0,
+          "display_value": 14.0,
+          "cnn_accuracy": 0.9634920634920635,
+          "svm_accuracy": 0.20095238095238097
+        }
+      ]
+    },
+    "residual_cd_ps_nm": {
+      "label": "residual dispersion",
+      "unit": "ps/nm",
+      "scale": 1.0,
+      "trained_at": 10.0,
+      "points": [
+        {
+          "value": 0.0,
+          "display_value": 0.0,
+          "cnn_accuracy": 0.9873015873015873,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 5.0,
+          "display_value": 5.0,
+          "cnn_accuracy": 0.9890476190476191,
+          "svm_accuracy": 0.9317460317460318
+        },
+        {
+          "value": 10.0,
+          "display_value": 10.0,
+          "cnn_accuracy": 0.9946031746031746,
+          "svm_accuracy": 0.9311111111111111
+        },
+        {
+          "value": 25.0,
+          "display_value": 25.0,
+          "cnn_accuracy": 0.9858730158730159,
+          "svm_accuracy": 0.9306349206349206
+        },
+        {
+          "value": 50.0,
+          "display_value": 50.0,
+          "cnn_accuracy": 0.9723809523809523,
+          "svm_accuracy": 0.9263492063492064
+        },
+        {
+          "value": 90.0,
+          "display_value": 90.0,
+          "cnn_accuracy": 0.8834920634920634,
+          "svm_accuracy": 0.9036507936507937
+        },
+        {
+          "value": 150.0,
+          "display_value": 150.0,
+          "cnn_accuracy": 0.5488888888888889,
+          "svm_accuracy": 0.8014285714285714
+        }
+      ]
+    }
+  },
+  "budget": {
+    "0.95": {
+      "laser_linewidth_hz": {
+        "cnn": 2000.0,
+        "svm": NaN
+      },
+      "freq_offset_hz": {
+        "cnn": 50.0,
+        "svm": NaN
+      },
+      "iq_gain_imbalance_db": {
+        "cnn": 2.5,
+        "svm": NaN
+      },
+      "iq_phase_skew_deg": {
+        "cnn": 14.0,
+        "svm": NaN
+      },
+      "residual_cd_ps_nm": {
+        "cnn": 50.0,
+        "svm": NaN
+      }
+    },
+    "0.9": {
+      "laser_linewidth_hz": {
+        "cnn": 2000.0,
+        "svm": 2000.0
+      },
+      "freq_offset_hz": {
+        "cnn": 50.0,
+        "svm": 50.0
+      },
+      "iq_gain_imbalance_db": {
+        "cnn": 2.5,
+        "svm": 0.6
+      },
+      "iq_phase_skew_deg": {
+        "cnn": 14.0,
+        "svm": 4.0
+      },
+      "residual_cd_ps_nm": {
+        "cnn": 50.0,
+        "svm": 90.0
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+======================================================================
+  OPTICAL MODULATION FORMAT IDENTIFICATION -- DATA GENERATION
+======================================================================
+  formats      : QPSK, 8QAM, 16QAM, 32QAM, 64QAM
+  OSNR sweep   : 5..25 dB (21 levels)
+  symbol rate  : 32 GBaud, 1 polarisation
+  OSNR -> SNR  : SNR_dB = OSNR_dB -1.07 dB
+  symbols/image: 4096
+  image size   : 64 x 64
+  seed         : 42
+
+  impairment profile: 'realistic'
+    residual_phase_deg       1.0
+    laser_linewidth_hz       100000.0
+    freq_offset_hz           10000000.0
+    iq_gain_imbalance_db     0.3
+    iq_phase_skew_deg        2.0
+    residual_cd_ps_nm        10.0
+
+  Constellation geometry
+  --------------------------------------------------------
+  format    points    bits      rings     peak/avg
+  QPSK           4       2          1        1.000
+  8QAM           8       3          2        1.764
+  16QAM         16       4          3        1.800
+  32QAM         32       5          5        1.700
+  64QAM         64       6          9        2.333
+
+  Sanity check -- normalised |C40| at OSNR = 40 dB, no impairments
+  --------------------------------------------------------------
+  format    simulated     theory     error    published
+  QPSK         0.9997     1.0000    0.0003       1.0000
+  8QAM         1.5251     1.5274    0.0023    (variant)
+  16QAM        0.6830     0.6800    0.0030       0.6800
+  32QAM        0.1868     0.1900    0.0032    (variant)
+  64QAM        0.6198     0.6190    0.0007       0.6191
+  --------------------------------------------------------------
+  ALL MATCH THEORY  (tolerance 0.010)
+  Square QAM also matches the published constants in the far-right
+  column, which validates the analytic formula itself.
+
+  Drawing sample constellation images...
+  saved D:\research paper\figures\sample_constellations.png
+
+  Building dataset: 600 per class per OSNR -> 63,000 images
+  [  53.1s] finished QPSK   (12,600 / 63,000 images)
+  [ 106.5s] finished 8QAM   (25,200 / 63,000 images)
+  [ 160.5s] finished 16QAM  (37,800 / 63,000 images)
+  [ 214.5s] finished 32QAM  (50,400 / 63,000 images)
+  [ 267.9s] finished 64QAM  (63,000 / 63,000 images)
+
+  DONE in 267.9 s
+  images   : (63000, 64, 64)  uint8
+  raw I/Q  : (63000, 2, 512)  float32
+  features : (63000, 15)  float32
+  labels   : (63000,), counts = {'QPSK': 12600, '8QAM': 12600, '16QAM': 12600, '32QAM': 12600, '64QAM': 12600}
+  saved to : D:\research paper\data

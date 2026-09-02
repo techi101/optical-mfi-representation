@@ -1,0 +1,85 @@
+========================================================================
+  CNN-BASED MODULATION FORMAT IDENTIFICATION -- TRAIN & EVALUATE
+========================================================================
+
+[1/5] Loading dataset
+  images   : (63000, 64, 64)
+  features : (63000, 15)
+  classes  : ['QPSK', '16QAM', '64QAM']
+  OSNR     : 5..25 dB in 21 steps
+  split    : 44,100 train / 9,450 val / 9,450 test
+
+[2/5] Training the CNN
+  parameters: 285,811
+  training on 44,100 images, validating on 9,450
+  epoch   train_loss  train_acc    val_loss    val_acc        lr     sec
+  ----------------------------------------------------------------------
+  1           0.1554     0.9222      0.0873     0.9594   1.0e-03    79.5  <- best
+  2           0.0908     0.9564      0.0718     0.9691   1.0e-03    83.7  <- best
+  3           0.0808     0.9625      0.0674     0.9721   1.0e-03    82.2  <- best
+  4           0.0733     0.9665      0.0879     0.9544   1.0e-03    81.0
+  5           0.0668     0.9701      0.0666     0.9687   1.0e-03    78.7
+  6           0.0615     0.9729      0.0849     0.9598   1.0e-03    78.8
+  7           0.0505     0.9789      0.0956     0.9583   5.0e-04    80.0
+  early stop: no improvement for 4 epochs
+  total training time: 565.1 s (9.4 min)
+  TEST ACCURACY (CNN) = 0.9683
+
+[3/5] Training the baselines on the 15 statistical features
+  SVM:
+    SVM trained on 44,100 samples in 14.8 s
+    TEST ACCURACY (SVM) = 0.8947  (predict 5.8 s)
+  kNN:
+    kNN trained on 44,100 samples in 0.1 s
+    TEST ACCURACY (kNN) = 0.8608  (predict 0.3 s)
+
+[4/5] Per-class report for the CNN (test set)
+              precision    recall  f1-score   support
+
+        QPSK     1.0000    1.0000    1.0000      3150
+       16QAM     0.9579    0.9463    0.9521      3150
+       64QAM     0.9470    0.9584    0.9527      3150
+
+    accuracy                         0.9683      9450
+   macro avg     0.9683    0.9683    0.9683      9450
+weighted avg     0.9683    0.9683    0.9683      9450
+
+[5/5] Saving results
+  results/results_summary.json
+  results/accuracy_vs_osnr.csv
+  results/cnn_training_history.csv
+  results/cnn_best.pt
+
+========================================================================
+  OVERALL TEST ACCURACY
+========================================================================
+  CNN   0.9683  (96.83 %)
+  SVM   0.8947  (89.47 %)
+  kNN   0.8608  (86.08 %)
+
+  ACCURACY vs OSNR
+    OSNR       CNN       SVM       kNN
+  ------------------------------------
+     5dB    0.7956    0.7222    0.7422
+     6dB    0.8778    0.7333    0.7000
+     7dB    0.8733    0.7000    0.6800
+     8dB    0.9022    0.6822    0.6467
+     9dB    0.9289    0.7156    0.6311
+    10dB    0.9644    0.7756    0.6889
+    11dB    0.9933    0.7978    0.6644
+    12dB    1.0000    0.8422    0.7378
+    13dB    0.9978    0.9289    0.7778
+    14dB    1.0000    0.9556    0.9000
+    15dB    1.0000    0.9822    0.9622
+    16dB    1.0000    0.9844    0.9800
+    17dB    1.0000    0.9867    0.9911
+    18dB    1.0000    0.9933    0.9844
+    19dB    1.0000    0.9956    0.9956
+    20dB    1.0000    0.9956    0.9978
+    21dB    1.0000    1.0000    1.0000
+    22dB    1.0000    1.0000    1.0000
+    23dB    1.0000    1.0000    1.0000
+    24dB    1.0000    0.9978    0.9978
+    25dB    1.0000    1.0000    1.0000
+
+  Next step:  python plots.py

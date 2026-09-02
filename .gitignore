@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# Generated datasets -- deliberately NOT committed.
+#
+# These files are 247 MB each, which exceeds GitHub's 100 MB per-file limit.
+# More importantly, they are fully REGENERABLE: every random number in this
+# project is seeded, so anyone can rebuild the exact same dataset with
+#
+#     python data_generation.py --n-per-class 600 --profile realistic
+#
+# Committing derived data that a script can reproduce byte-for-byte is worse
+# practice than committing the script. Ship the recipe, not the cake.
+# ---------------------------------------------------------------------------
+data/*.npy
+data/*.json
+
+# Trained model weights -- also regenerable, and large.
+results/*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# LaTeX build artefacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.toc
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
