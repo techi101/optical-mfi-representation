@@ -44,3 +44,7 @@ desktop.ini
 .idea/
 *.swp
 OUTREACH_EMAILS.md
+
+# Overleaf upload bundle (regenerated from paper/ and figures/)
+overleaf_upload/
+overleaf_upload.zip
