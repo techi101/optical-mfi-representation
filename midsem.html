@@ -1,0 +1,186 @@
+<title>Mid-Semester Scope</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f5f9; --surface:#ffffff; --surface-2:#f0eef5;
+  --ink:#16131f; --ink-2:#565070; --ink-3:#847ea0;
+  --rule:#e0dceb; --rule-2:#cec9dd;
+  --accent:#4b3bae; --accent-soft:#ece9fa;
+  --signal:#b4470d; --signal-soft:#fbeee4;
+  --ok:#1a6b4a; --ok-soft:#e5f3ec;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#100f16; --surface:#191723; --surface-2:#211e2e;
+  --ink:#f3f1f8; --ink-2:#aaa4c2; --ink-3:#7d7799;
+  --rule:#2c2839; --rule-2:#3d3852;
+  --accent:#a99df3; --accent-soft:#251f45;
+  --signal:#f0954f; --signal-soft:#33200f;
+  --ok:#63c69b; --ok-soft:#10291f;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#100f16; --surface:#191723; --surface-2:#211e2e;
+  --ink:#f3f1f8; --ink-2:#aaa4c2; --ink-3:#7d7799;
+  --rule:#2c2839; --rule-2:#3d3852;
+  --accent:#a99df3; --accent-soft:#251f45;
+  --signal:#f0954f; --signal-soft:#33200f;
+  --ok:#63c69b; --ok-soft:#10291f;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15.5px; line-height:1.65; padding-inline:20px; -webkit-font-smoothing:antialiased}
+.wrap{max-width:820px; margin:0 auto; padding-block:40px 80px}
+h1,h2,h3{text-wrap:balance; margin:0}
+h1{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:clamp(29px,5.8vw,42px); line-height:1.12; letter-spacing:-.022em}
+h2{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:25px; letter-spacing:-.012em}
+h3{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:18.5px}
+p{margin:0; max-width:70ch}
+ul,ol{margin:0; padding-left:21px; display:flex; flex-direction:column; gap:8px; max-width:70ch}
+a{color:var(--accent)}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.88em; background:var(--surface-2); padding:1px 5px; border-radius:2px}
+strong{font-weight:600; color:var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+header{border-bottom:2px solid var(--ink); padding-bottom:26px; display:flex; flex-direction:column; gap:12px}
+.sub{font-size:17px; color:var(--ink-2); max-width:64ch}
+section{margin-top:54px; display:flex; flex-direction:column; gap:18px}
+.note{border-left:3px solid var(--accent); background:var(--accent-soft); padding:15px 19px; font-size:14.5px; display:flex; flex-direction:column; gap:7px}
+.note b{font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--accent)}
+.tblwrap{overflow-x:auto; border:1px solid var(--rule); background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:520px}
+th,td{text-align:left; padding:10px 14px; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500; background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:none}
+.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.pill{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; padding:2px 8px; border-radius:2px}
+.p-now{background:var(--ok-soft); color:var(--ok)}
+.p-later{background:var(--surface-2); color:var(--ink-3)}
+footer{margin-top:62px; padding-top:22px; border-top:1px solid var(--rule); font-size:13.5px; color:var(--ink-3); display:flex; flex-direction:column; gap:8px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">B.Tech Project &middot; Mid-semester evaluation &middot; 30 September 2026</div>
+  <h1>Mid-Semester Scope</h1>
+  <p class="sub">What is being presented at the mid-term review, how much of the project it covers, and the reasoning behind where the line was drawn.</p>
+</header>
+
+<section>
+  <h2>What the review asks for</h2>
+  <p>The mid-term evaluation allots each group <strong>ten minutes of presentation</strong> across <strong>10&ndash;15 slides</strong>, followed by questions. A written report of <strong>10&ndash;15 pages</strong> is submitted alongside it, in six prescribed sections: Introduction; Literature survey; Problem statement and Methodology; Work done till date, Results and Discussion; Future work; References.</p>
+  <p>The presentation follows the department's template, which prescribes its own section order: Introduction, Literature Review, Objectives, Methods/Materials, Experimentation/Modeling, Results, Conclusions, Publication, References.</p>
+</section>
+
+<section>
+  <h2>The presentation, slide by slide</h2>
+  <p>Twelve slides. Timings below sum to nine minutes forty-five seconds, leaving margin inside the ten allowed.</p>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th class="num">#</th><th>Slide</th><th>What it carries</th><th class="num">Time</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Title</td><td>Authors, roll numbers, supervisor, department</td><td class="num">10 s</td></tr>
+        <tr><td class="num">2</td><td>Content</td><td>The template's nine sections</td><td class="num">15 s</td></tr>
+        <tr><td class="num">3</td><td>Introduction</td><td>How light carries data; symbol, modulation format, constellation diagram; elastic optical networks; why modulation format identification exists. Includes the constellation figure across five formats and five OSNR levels.</td><td class="num">65 s</td></tr>
+        <tr><td class="num">4</td><td>Literature Review</td><td>Four themed groups &mdash; classical cumulant methods, alternative hand-crafted representations, deep learning on constellation images, and the parallel line of work in wireless &mdash; closing on the gap each leaves open.</td><td class="num">60 s</td></tr>
+        <tr><td class="num">5</td><td>Objectives</td><td>Six objectives, led by the central question: does the reported advantage of CNN-based MFI come from the model or from the input representation?</td><td class="num">40 s</td></tr>
+        <tr><td class="num">6</td><td>Methods / Materials</td><td>The simulated coherent link and its impairment chain; why simulation is required; validation against exact analytic cumulants; the three representations; the experimental protocol.</td><td class="num">65 s</td></tr>
+        <tr><td class="num">7</td><td>Experimentation / Modeling</td><td>The 2&times;2 design as a table, and why the MLP on hand-crafted features is the control that makes the comparison possible.</td><td class="num">70 s</td></tr>
+        <tr><td class="num">8</td><td>Results</td><td>The five-classifier comparison figure and the five findings drawn from it.</td><td class="num">90 s</td></tr>
+        <tr><td class="num">9</td><td>Work in Progress and Next Steps</td><td>Four further experiments complete with analysis in preparation, each with its headline outcome; then the planned work for the remainder of the project, in priority order.</td><td class="num">60 s</td></tr>
+        <tr><td class="num">10</td><td>Conclusions</td><td>What Phase 1 has established.</td><td class="num">45 s</td></tr>
+        <tr><td class="num">11</td><td>Publication</td><td>Manuscript status and target venue.</td><td class="num">25 s</td></tr>
+        <tr><td class="num">12</td><td>References</td><td>Sixteen, all verified against publisher records.</td><td class="num">5 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>How much of the project this covers</h2>
+  <p>The methodology is presented in full. Of the seven experiments, <strong>three are presented with their figures and discussion</strong>, and <strong>four are reported by outcome</strong>, with their detailed treatment reserved for the extended write-up.</p>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Experiment</th><th>Question it answers</th><th>At the mid-term</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Main comparison</strong></td><td>Does the representation or the algorithm drive the gain?</td><td><span class="pill p-now">In full</span></td></tr>
+        <tr><td><strong>Generalisation to unseen OSNR</strong></td><td>Has the model learned the physics, or memorised noise levels?</td><td><span class="pill p-now">In full</span></td></tr>
+        <tr><td><strong>Capture length</strong></td><td>How few symbols does a decision need?</td><td><span class="pill p-now">In full</span></td></tr>
+        <tr><td>Channel robustness</td><td>Does a model trained on one channel survive another?</td><td><span class="pill p-later">Outcome only</span></td></tr>
+        <tr><td>Failure self-detection</td><td>Does the model's confidence signal its own failure?</td><td><span class="pill p-later">Outcome only</span></td></tr>
+        <tr><td>Impairment tolerance</td><td>Which specific impairment breaks which model?</td><td><span class="pill p-later">Outcome only</span></td></tr>
+        <tr><td>Architecture ablation</td><td>Do the architecture choices matter?</td><td><span class="pill p-later">Outcome only</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Why the line falls there</h2>
+
+  <h3>The two halves answer different questions</h3>
+  <p>The seven experiments divide naturally. Three establish <strong>whether the effect exists and how far it generalises</strong>. Four characterise <strong>where it breaks down and why</strong>. The first group is the finding; the second is its boundary conditions.</p>
+  <p>A mid-term review is a checkpoint on whether the research question is well posed, the method is sound, and the central result holds. That is exactly the first group. The second group is analysis of failure modes, and failure-mode analysis reads properly only when it is given room &mdash; three of those four experiments each need a figure and several paragraphs to be understood rather than merely stated.</p>
+
+  <h3>Ten minutes will not carry seven experiments</h3>
+  <p>Ten minutes across twelve slides is roughly fifty seconds per slide. Presenting all seven experiments would leave about twenty seconds each, which is enough to display a number and not enough to explain what it means. The choice is between seven results nobody can follow and three results that land, plus an honest account of what else exists.</p>
+
+  <h3>Nothing is concealed</h3>
+  <p>The four remaining experiments are named on slide 9, each with its headline outcome and its actual figure &mdash; the robustness number, the coverage ratio, the impairment that inverts the result, the ablation spread. Any of them can be discussed on request; the numbers are in the report and the underlying results are in this repository. What is deferred is the depth of treatment, not the existence of the result.</p>
+
+  <h3>The remaining work is stated as a plan</h3>
+  <p>Slide 9 closes with the planned work in priority order, beginning with fibre nonlinearity. That ordering is not arbitrary: the robustness result from Phase 1 already produces a falsifiable prediction about nonlinearity &mdash; because nonlinear interference is not Gaussian, and cumulant features rely on Gaussian cancellation at fourth order and above, the feature-based models should degrade further than the CNN. The experiment therefore has a defined outcome either way, which the other two candidate directions do not yet have.</p>
+</section>
+
+<section>
+  <h2>The numbers on screen</h2>
+  <p>Every figure below is generated from the stored results and re-derived independently by the project's audit script.</p>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Presented with discussion</th><th class="num">Value</th></tr></thead>
+      <tbody>
+        <tr><td>CNN / SVM / MLP / k-NN / IQ-CNN accuracy</td><td class="num">98.73 / 93.41 / 93.08 / 91.58 / 86.56 %</td></tr>
+        <tr><td>Algorithm effect (spread across three algorithms, identical features)</td><td class="num">1.83 points</td></tr>
+        <tr><td>Representation effect (CNN over the strongest feature model)</td><td class="num">5.32 points, 2.9&times;</td></tr>
+        <tr><td>OSNR for 95 % accuracy, CNN against SVM</td><td class="num">7 dB vs 14 dB</td></tr>
+        <tr><td>Accuracy on OSNR levels withheld from training</td><td class="num">97.45 &plusmn; 0.16 %</td></tr>
+        <tr><td>CNN at 512 symbols against SVM at 4096</td><td class="num">94.08 % vs 93.82 %</td></tr>
+        <tr><td>Simulator agreement with exact analytic cumulants</td><td class="num">within 0.004</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tblwrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>Reported by outcome only</th><th class="num">Value</th></tr></thead>
+      <tbody>
+        <tr><td>Channel mismatch, CNN against SVM (chance 20 %)</td><td class="num">89.78 % vs 21.84 %</td></tr>
+        <tr><td>Coverage at a 90 % confidence gate</td><td class="num">86.9 % vs 0.2 %</td></tr>
+        <tr><td>Residual dispersion at 150 ps/nm, SVM against CNN</td><td class="num">80.14 % vs 54.89 %</td></tr>
+        <tr><td>Ablation spread across a 9.2&times; parameter range</td><td class="num">1.26 points</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>What is submitted</h2>
+  <ul>
+    <li><strong>Presentation</strong> &mdash; <code>BTP_MidSem_Presentation.pptx</code>, twelve slides, built to the department template.</li>
+    <li><strong>Report</strong> &mdash; ten to fifteen pages in the six prescribed sections, signed by all three authors and the supervisor.</li>
+    <li><strong>Turnitin report</strong> &mdash; submitted alongside, as required.</li>
+  </ul>
+  <div class="note">
+    <b>Reproducibility</b>
+    <p>Every number presented regenerates from a fixed random seed. The dataset is not stored in this repository because it rebuilds byte-for-byte from <code>config.SEED</code> in about five minutes; the full pipeline, from data generation through all seven experiments to final figures, runs in roughly four and a half hours on a laptop CPU with no GPU at any stage.</p>
+  </div>
+</section>
+
+<footer>
+  <span>Part of <a href="https://github.com/techi101/optical-mfi-representation">optical-mfi-representation</a>. See also the <a href="./">full project explainer</a> and the <a href="./CONSTELLATION_LAB.html">interactive constellation lab</a>.</span>
+  <span>Nitesh Kumar Yadav, Yash Mittal and Sajan &middot; Department of Electronics and Communication Engineering, Netaji Subhas University of Technology.</span>
+</footer>
+
+</div>
