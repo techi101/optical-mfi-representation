@@ -1,0 +1,844 @@
+<title>Reading the Constellation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f5f9; --surface:#ffffff; --surface-2:#f0eef5;
+  --ink:#16131f; --ink-2:#565070; --ink-3:#847ea0;
+  --rule:#e0dceb; --rule-2:#cec9dd;
+  --accent:#4b3bae; --accent-soft:#ece9fa;
+  --signal:#b4470d; --signal-soft:#fbeee4;
+  --ok:#1a6b4a; --ok-soft:#e5f3ec;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#100f16; --surface:#191723; --surface-2:#211e2e;
+  --ink:#f3f1f8; --ink-2:#aaa4c2; --ink-3:#7d7799;
+  --rule:#2c2839; --rule-2:#3d3852;
+  --accent:#a99df3; --accent-soft:#251f45;
+  --signal:#f0954f; --signal-soft:#33200f;
+  --ok:#63c69b; --ok-soft:#10291f;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#100f16; --surface:#191723; --surface-2:#211e2e;
+  --ink:#f3f1f8; --ink-2:#aaa4c2; --ink-3:#7d7799;
+  --rule:#2c2839; --rule-2:#3d3852;
+  --accent:#a99df3; --accent-soft:#251f45;
+  --signal:#f0954f; --signal-soft:#33200f;
+  --ok:#63c69b; --ok-soft:#10291f;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15.5px; line-height:1.65;
+  padding-inline:20px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:780px; margin:0 auto; padding-block:40px 80px}
+h1,h2,h3,h4{text-wrap:balance; margin:0}
+h1{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:clamp(30px,6vw,44px); line-height:1.12; letter-spacing:-.022em}
+h2{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:26px; letter-spacing:-.012em; line-height:1.25}
+h3{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; font-size:19px; letter-spacing:-.008em}
+h4{font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3)}
+p{margin:0; max-width:66ch}
+ul,ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; max-width:66ch}
+li{margin:0}
+a{color:var(--accent)}
+code{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.88em; background:var(--surface-2); padding:1px 5px; border-radius:2px}
+strong{font-weight:600; color:var(--ink)}
+em.term{font-style:normal; font-weight:600; color:var(--accent)}
+
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+header{border-bottom:2px solid var(--ink); padding-bottom:28px; display:flex; flex-direction:column; gap:14px}
+.sub{font-size:17px; color:var(--ink-2); max-width:62ch}
+
+nav.toc{margin-top:34px; border:1px solid var(--rule); background:var(--surface); padding:20px 22px}
+nav.toc h4{margin-bottom:12px}
+nav.toc ol{list-style:none; padding:0; gap:7px; counter-reset:c}
+nav.toc li{counter-increment:c; display:grid; grid-template-columns:30px 1fr; font-size:14.5px}
+nav.toc li::before{content:counter(c,decimal-leading-zero); font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); padding-top:3px}
+nav.toc a{text-decoration:none; color:var(--ink)}
+nav.toc a:hover{text-decoration:underline}
+
+section{margin-top:64px; display:flex; flex-direction:column; gap:20px; scroll-margin-top:20px}
+section > .pnum{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+.block{display:flex; flex-direction:column; gap:14px}
+
+.def{border-left:3px solid var(--accent); background:var(--accent-soft); padding:14px 18px; display:flex; flex-direction:column; gap:6px}
+.def b{font-size:13.5px; letter-spacing:.03em}
+.def p{font-size:14.5px; color:var(--ink-2)}
+
+.aside{border-left:3px solid var(--signal); background:var(--signal-soft); padding:14px 18px; display:flex; flex-direction:column; gap:6px}
+.aside b{font-size:13.5px}
+.aside p{font-size:14.5px; color:var(--ink-2)}
+
+.tblwrap{overflow-x:auto; border:1px solid var(--rule); background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:460px}
+th,td{text-align:left; padding:10px 14px; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500; background:var(--surface-2); white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+tr.hi td{background:var(--accent-soft)}
+tr.hi td:first-child{font-weight:600}
+
+figure{margin:0; border:1px solid var(--rule); background:var(--surface); padding:20px 18px 0}
+figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink)}
+figcaption{padding:14px 0; font-size:13.5px; color:var(--ink-2); border-top:1px solid var(--rule); margin-top:18px}
+figure.photo{padding:0}
+figure.photo img{display:block; width:100%; height:auto; background:#fff}
+figure.photo figcaption{padding:12px 16px; margin-top:0; border-top:1px solid var(--rule)}
+
+.formula{font-family:"IBM Plex Mono",monospace; font-size:14.5px; background:var(--surface); border:1px solid var(--rule); padding:14px 18px; overflow-x:auto; color:var(--ink)}
+.formula .cmt{color:var(--ink-3)}
+
+.chain{display:flex; flex-direction:column; gap:0; border:1px solid var(--rule); background:var(--surface)}
+.chain div{padding:11px 16px; border-bottom:1px solid var(--rule); font-size:14px; display:grid; grid-template-columns:26px 1fr; gap:10px}
+.chain div:last-child{border-bottom:none}
+.chain .ar{font-family:"IBM Plex Mono",monospace; color:var(--ink-3); font-size:12px; padding-top:2px}
+.chain b{color:var(--ink)}
+.chain span.w{color:var(--ink-2)}
+
+.kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule)}
+.kv div{background:var(--surface); padding:16px; display:flex; flex-direction:column; gap:4px}
+.kv .n{font-family:"IBM Plex Mono",monospace; font-size:24px; font-variant-numeric:tabular-nums; color:var(--accent)}
+.kv .k{font-size:13px; color:var(--ink-2); line-height:1.45}
+
+.slides{border:1px solid var(--rule); background:var(--surface); counter-reset:s}
+.slides > div{counter-increment:s; display:grid; grid-template-columns:38px 1fr; gap:12px; padding:14px 18px; border-bottom:1px solid var(--rule); font-size:14px; color:var(--ink-2)}
+.slides > div:last-child{border-bottom:none}
+.slides > div::before{content:"S" counter(s); font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); padding-top:3px}
+.slides b{display:block; color:var(--ink); font-weight:600}
+
+dl.gloss{margin:0; border:1px solid var(--rule); background:var(--surface)}
+dl.gloss > div{display:grid; grid-template-columns:200px 1fr; gap:16px; padding:12px 16px; border-bottom:1px solid var(--rule); font-size:14px}
+dl.gloss > div:last-child{border-bottom:none}
+dl.gloss dt{font-weight:600; color:var(--ink)}
+dl.gloss dd{margin:0; color:var(--ink-2)}
+@media (max-width:560px){dl.gloss > div{grid-template-columns:1fr; gap:3px}}
+
+footer{margin-top:72px; padding-top:24px; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-3); display:flex; flex-direction:column; gap:7px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">B.Tech Project &middot; Full explainer</div>
+  <h1>Reading the Constellation</h1>
+  <p class="sub">Everything in the paper, built up from light in a fibre. Written for someone who has never taken an optical communications course, and who has to present this.</p>
+  <div class="aside" style="margin-top:4px"><b>Before you copy anything from this page</b><p>The mid-sem guidelines require Turnitin <strong>plagiarism under 10% and AI plagiarism under 20%</strong>. This page was written by an AI assistant, so pasting its sentences into the report is exactly what the detector looks for. Use it to understand the work and to structure the report &mdash; then write every sentence yourself. Numbers, tables and figures are safe; prose is not.</p></div>
+</header>
+
+<nav class="toc">
+  <h4>Contents</h4>
+  <ol>
+    <li><a href="#p1">How light carries data</a></li>
+    <li><a href="#p2">The constellation diagram</a></li>
+    <li><a href="#p3">What goes wrong in a real fibre</a></li>
+    <li><a href="#p4">The problem: what is modulation format identification?</a></li>
+    <li><a href="#p5">The research question, and why it is not obvious</a></li>
+    <li><a href="#p6">Building the data: the simulator</a></li>
+    <li><a href="#p7">Three ways to look at the same signal</a></li>
+    <li><a href="#p8">The five classifiers</a></li>
+    <li><a href="#p9">How we trained them</a></li>
+    <li><a href="#p10">The seven experiments</a></li>
+    <li><a href="#p11">Results, in full</a></li>
+    <li><a href="#p12">How we know the results are not wrong</a></li>
+    <li><a href="#p13">What the paper does not claim</a></li>
+    <li><a href="#p14">A slide-by-slide outline</a></li>
+    <li><a href="#p15">Glossary</a></li>
+  </ol>
+</nav>
+
+<section id="p1">
+  <div class="pnum">Part 1</div>
+  <h2>How light carries data</h2>
+
+  <p>An optical fibre is a strand of very pure glass, thinner than a human hair. You shine light in one end and it comes out the other, hundreds of kilometres later. To send <em>information</em> down it, you have to vary the light in some way that the far end can measure.</p>
+
+  <p>A light wave has three properties you can vary:</p>
+  <ul>
+    <li><strong>Amplitude</strong> &mdash; how bright the light is. The height of the wave.</li>
+    <li><strong>Phase</strong> &mdash; where the wave is in its cycle at a given instant. Two waves of identical brightness can be offset from one another; that offset is a phase difference, measured in degrees or radians.</li>
+    <li><strong>Frequency</strong> &mdash; how fast it oscillates, which for light is its colour. Used to stack many channels in one fibre, but not what this project varies.</li>
+  </ul>
+
+  <p>The simplest possible scheme is to switch the light on and off: on is 1, off is 0. That sends <strong>one bit per pulse</strong>. It works, and it is how early fibre links operated, but it wastes the fibre. If you can only send one bit per pulse, then a fibre running at 32 billion pulses per second carries 32 gigabits per second and not one bit more.</p>
+
+  <div class="def">
+    <b>Symbol</b>
+    <p>One transmitted pulse, carrying a specific combination of amplitude and phase. A symbol is the atom of transmission. If you allow four distinguishable symbols instead of two, each one carries two bits instead of one, and the same fibre at the same pulse rate carries twice the data.</p>
+  </div>
+
+  <p>This is the central trick of modern optical transmission: <strong>do not just switch the light on and off &mdash; place it at one of many agreed (amplitude, phase) combinations</strong>. The set of allowed combinations is called the <em class="term">modulation format</em>.</p>
+
+  <div class="def">
+    <b>Coherent detection</b>
+    <p>To measure phase, the receiver mixes the arriving light with light from its own local laser (a <em>local oscillator</em>). Interference between the two reveals the phase difference. A receiver that does this is a <strong>coherent receiver</strong>, and it is what makes phase-based formats possible. A simple photodiode measures only brightness and would throw the phase away entirely.</p>
+  </div>
+</section>
+
+<section id="p2">
+  <div class="pnum">Part 2</div>
+  <h2>The constellation diagram</h2>
+
+  <p>Amplitude and phase together describe a point in a plane, the same way a distance and a bearing describe a location on a map. Engineers prefer to write that point in rectangular coordinates instead:</p>
+
+  <ul>
+    <li><strong>I</strong> &mdash; the <em class="term">in-phase</em> component, the horizontal axis</li>
+    <li><strong>Q</strong> &mdash; the <em class="term">quadrature</em> component, the vertical axis. "Quadrature" means a quarter-cycle, 90&deg;, out of phase with I.</li>
+  </ul>
+
+  <p>Every symbol is one point on the I&ndash;Q plane. Distance from the origin is amplitude; angle from the I-axis is phase. Plot all the symbols in a capture and you get a <em class="term">constellation diagram</em>. That picture is the raw material of this entire project.</p>
+
+  <figure>
+    <svg viewBox="0 0 700 300" role="img" aria-label="An amplitude and phase pair becomes one point on the I-Q plane; four such points spaced 90 degrees apart form the QPSK constellation">
+      <defs>
+        <marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0,1 7,4 0,7" fill="currentColor"/></marker>
+      </defs>
+      <g stroke="currentColor" fill="none" opacity=".35">
+        <line x1="40" y1="160" x2="250" y2="160" marker-end="url(#ah)"/>
+        <line x1="145" y1="265" x2="145" y2="55" marker-end="url(#ah)"/>
+      </g>
+      <text x="255" y="164" font-size="12" fill="currentColor" opacity=".6">I</text>
+      <text x="141" y="48" font-size="12" fill="currentColor" opacity=".6">Q</text>
+      <line x1="145" y1="160" x2="205" y2="100" stroke="#4b3bae" stroke-width="2"/>
+      <circle cx="205" cy="100" r="6" fill="#4b3bae"/>
+      <path d="M 175 160 A 30 30 0 0 0 166 139" stroke="#4b3bae" fill="none" stroke-width="1.5"/>
+      <text x="180" y="136" font-size="11" fill="#4b3bae">phase</text>
+      <text x="150" y="118" font-size="11" fill="#4b3bae" transform="rotate(-45 150 118)">amplitude</text>
+      <text x="145" y="290" font-size="12" fill="currentColor" text-anchor="middle" opacity=".75">one symbol</text>
+
+      <g stroke="currentColor" opacity=".3" stroke-dasharray="4 4"><line x1="300" y1="160" x2="360" y2="160" marker-end="url(#ah)"/></g>
+      <text x="330" y="148" font-size="11" fill="currentColor" text-anchor="middle" opacity=".6">4 allowed</text>
+      <text x="330" y="183" font-size="11" fill="currentColor" text-anchor="middle" opacity=".6">positions</text>
+
+      <g stroke="currentColor" fill="none" opacity=".35">
+        <line x1="430" y1="160" x2="640" y2="160" marker-end="url(#ah)"/>
+        <line x1="535" y1="265" x2="535" y2="55" marker-end="url(#ah)"/>
+      </g>
+      <text x="645" y="164" font-size="12" fill="currentColor" opacity=".6">I</text>
+      <text x="531" y="48" font-size="12" fill="currentColor" opacity=".6">Q</text>
+      <g fill="#4b3bae">
+        <circle cx="580" cy="115" r="6"/><circle cx="490" cy="115" r="6"/>
+        <circle cx="490" cy="205" r="6"/><circle cx="580" cy="205" r="6"/>
+      </g>
+      <g font-size="10" fill="currentColor" opacity=".7" font-family="monospace">
+        <text x="592" y="112">00</text><text x="462" y="112">01</text>
+        <text x="462" y="222">11</text><text x="592" y="222">10</text>
+      </g>
+      <text x="535" y="290" font-size="12" fill="currentColor" text-anchor="middle" opacity=".75">QPSK &mdash; 2 bits per symbol</text>
+    </svg>
+    <figcaption>A symbol is an amplitude and a phase, which is one point on the I&ndash;Q plane. Agree on four points 90&deg; apart and each transmitted pulse now carries two bits instead of one. That is QPSK.</figcaption>
+  </figure>
+
+  <p>Push further and you get denser formats. <em class="term">QAM</em> stands for Quadrature Amplitude Modulation &mdash; vary both amplitude <em>and</em> phase. The number in front is how many distinct points the format defines.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Format</th><th class="num">Points</th><th class="num">Bits/symbol</th><th>Shape on the I&ndash;Q plane</th></tr></thead>
+      <tbody>
+        <tr><td>QPSK</td><td class="num">4</td><td class="num">2</td><td>2&times;2 square</td></tr>
+        <tr><td>8-QAM</td><td class="num">8</td><td class="num">3</td><td><strong>star</strong> &mdash; 4 inner + 4 outer, rotated 45&deg;</td></tr>
+        <tr><td>16-QAM</td><td class="num">16</td><td class="num">4</td><td>4&times;4 square</td></tr>
+        <tr><td>32-QAM</td><td class="num">32</td><td class="num">5</td><td><strong>cross</strong> &mdash; 6&times;6 grid minus the 4 corners</td></tr>
+        <tr><td>64-QAM</td><td class="num">64</td><td class="num">6</td><td>8&times;8 square</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>The fundamental trade-off:</strong> more points means more bits per symbol, but the points sit closer together, so a smaller amount of noise is enough to push a received point across the boundary into its neighbour's territory. 64-QAM triples QPSK's data rate and is far more fragile. Everything in this project descends from that tension.</p>
+
+  <div class="aside">
+    <b>A design choice worth defending in the viva</b>
+    <p>Two of our five formats &mdash; 8-QAM and 32-QAM &mdash; are deliberately <strong>non-square</strong>. A classifier that only ever sees square grids of varying density has an artificially easy job: it can essentially count grid spacing. Including a star and a cross forces it to learn real shape. A reviewer who noticed five square formats would say so immediately.</p>
+  </div>
+
+  <figure class="photo">
+    <img src="figures/sample_constellations.png" alt="A grid of constellation diagrams showing five modulation formats at several noise levels, from clean well-separated clusters to indistinguishable clouds">
+    <figcaption>The real thing, from our simulator. Columns are formats, rows are noise levels. At the top the clusters are tight and countable; at the bottom they merge into a single cloud. This one image is the whole problem statement.</figcaption>
+  </figure>
+</section>
+
+<section id="p3">
+  <div class="pnum">Part 3</div>
+  <h2>What goes wrong in a real fibre</h2>
+
+  <p>If fibre were perfect, the received constellation would be five crisp dots and a lookup table would solve this. It is not perfect. Five separate physical effects distort the picture, and understanding them is most of understanding the paper.</p>
+
+  <h3>Loss, amplifiers, and the noise they add</h3>
+
+  <p>Glass absorbs and scatters light, so the signal fades as it travels. Roughly every 80 km an <em class="term">EDFA</em> (erbium-doped fibre amplifier) boosts it back up. An EDFA is a length of fibre doped with erbium atoms that are pumped into an excited state; the arriving signal stimulates them to emit more light in step with it, amplifying the signal.</p>
+
+  <p>The catch: some of those excited atoms decay on their own, emitting light with random phase and no relation to your data. This is <em class="term">ASE</em> &mdash; amplified spontaneous emission &mdash; and every amplifier along the route adds more of it. ASE accumulates while the signal does not, so a long link is a noisy link.</p>
+
+  <div class="def">
+    <b>OSNR &mdash; optical signal-to-noise ratio</b>
+    <p>The ratio of signal power to noise power, quoted in decibels. High OSNR (25 dB) means a clean link and tight constellation points. Low OSNR (5 dB) means a noisy link and points smeared into clouds. It is the single most important number describing a link's health.</p>
+  </div>
+
+  <div class="def">
+    <b>The decibel (dB)</b>
+    <p>A logarithmic ratio: <code>dB = 10 &times; log&#8321;&#8320;(power ratio)</code>. It is logarithmic because optical powers span many orders of magnitude. Rules of thumb: <strong>3 dB is a factor of 2</strong>, 10 dB is a factor of 10, 20 dB is a factor of 100. So an OSNR improving from 7 dB to 14 dB is not "double" &mdash; it is roughly five times more signal per unit noise.</p>
+  </div>
+
+  <h3>The other four impairments</h3>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Impairment</th><th>Physical cause</th><th>What it does to the picture</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ASE noise</strong></td><td>spontaneous emission from the amplifier chain</td><td>every point spreads into a fuzzy cloud</td></tr>
+        <tr><td><strong>Residual chromatic dispersion</strong></td><td>different wavelengths travel at slightly different speeds, so a pulse spreads out and overlaps its neighbours</td><td>points blur into each other (inter-symbol interference)</td></tr>
+        <tr><td><strong>Laser phase noise</strong></td><td>a laser's phase drifts as a random walk; how fast is set by its <em>linewidth</em></td><td>angular smearing &mdash; points stretch into arcs</td></tr>
+        <tr><td><strong>Frequency offset</strong></td><td>the transmit laser and the receiver's local oscillator are separate physical devices and never exactly agree on colour</td><td>the whole constellation slowly rotates</td></tr>
+        <tr><td><strong>I/Q imbalance</strong></td><td>the receiver's two arms have unequal gain, and its optical hybrid is not exactly 90&deg;</td><td>the square grid skews into a parallelogram</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Most student projects simulate only the ASE noise. Modelling the other four is what makes this defensible to an optical-communications reviewer &mdash; and, more importantly, it is what makes the robustness experiment possible, which turned out to be the most interesting result in the project.</p>
+
+  <h3>The signal chain, in order</h3>
+
+  <p>Order matters enormously here, and getting it wrong produces physically impossible results. This is the chain our simulator implements:</p>
+
+  <div class="chain">
+    <div><span class="ar">1</span><span class="w"><b>Random symbols</b> &mdash; draw 4,096 symbols uniformly from the chosen format</span></div>
+    <div><span class="ar">2</span><span class="w"><b>Residual chromatic dispersion</b> &mdash; neighbouring pulses bleed into each other</span></div>
+    <div><span class="ar">3</span><span class="w"><b>Laser phase noise + frequency offset</b> &mdash; a random walk plus a steady rotation, added to the phase</span></div>
+    <div><span class="ar">4</span><span class="w"><b>Carrier phase recovery (CPE)</b> &mdash; the receiver's DSP estimates and removes the slow phase drift, in blocks of 64 symbols</span></div>
+    <div><span class="ar">5</span><span class="w"><b>I/Q gain imbalance and phase skew</b> &mdash; receiver hardware imperfection skews the plane</span></div>
+    <div><span class="ar">6</span><span class="w"><b>Automatic gain control</b> &mdash; normalise to unit average power</span></div>
+    <div><span class="ar">7</span><span class="w"><b>AWGN at the target OSNR</b> &mdash; add the amplifier noise</span></div>
+  </div>
+
+  <div class="aside">
+    <b>The bug that teaches the most &mdash; use this in the viva</b>
+    <p>The frequency offset must be applied <strong>before</strong> carrier phase recovery, not after. Cancelling residual frequency offset is one of CPE's jobs; a real receiver's phase tracker follows that slow rotation and removes it. The first version of the simulator applied the offset <em>afterwards</em>, so nothing removed it, and a mere 1 MHz of offset smeared every constellation point into a 46&deg; arc. Constellations looked destroyed even at 25 dB, which is not what a working receiver produces.</p>
+    <p>The fix: build the total phase (random walk plus linear ramp), let the block-averaging CPE remove the slowly-varying part of <strong>both</strong>, and keep only what survives &mdash; the variation <em>within</em> one 64-symbol block. A wider linewidth or a bigger offset still leaves a bigger residual, which is the realistic behaviour, but the constellation stays recognisable. This shows you understand what the DSP <em>does</em>, not just how to call a function.</p>
+  </div>
+
+  <h3>Why OSNR is not the same as SNR</h3>
+
+  <p>A favourite examiner question, and an easy one to get wrong.</p>
+
+  <ul>
+    <li><strong>OSNR</strong> is <em>optical</em>. It is measured by an optical spectrum analyser in a fixed 0.1 nm reference bandwidth (12.5 GHz at the 1550 nm telecom wavelength), and it counts noise in <strong>both</strong> polarisations of light.</li>
+    <li><strong>SNR</strong> is <em>electrical</em>. It is what the receiver actually experiences after it filters down to its own symbol rate and selects a single polarisation.</li>
+  </ul>
+
+  <div class="formula">SNR = OSNR &times; (2 &middot; B_ref) / (p &middot; R_s)
+
+<span class="cmt">with B_ref = 12.5 GHz, R_s = 32 GBaud, p = 1 polarisation:</span>
+
+SNR = OSNR &times; 0.781   &rarr;   SNR_dB = OSNR_dB &minus; 1.07 dB</div>
+
+  <p>So at an OSNR of 25 dB the receiver really sees about 23.9 dB. Reporting against OSNR without stating this conversion overstates your electrical SNR by roughly 1 dB, and a reviewer in this field will notice.</p>
+</section>
+
+<section id="p4">
+  <div class="pnum">Part 4</div>
+  <h2>The problem: what is modulation format identification?</h2>
+
+  <p>Older optical networks were static: a link was configured once for one format and left alone. Modern networks are <em class="term">elastic</em> &mdash; the transmitter picks its format based on current link conditions. 64-QAM on a short clean route to maximise throughput; QPSK on a long noisy one to stay reliable. The format can change as conditions change.</p>
+
+  <p>This creates a problem at the far end. <strong>The receiver cannot demodulate anything until it knows which format arrived.</strong> Traditionally the two ends negotiate over a separate control channel. That works but it is slow, it is one more thing to configure, and it fails exactly when the link is degraded.</p>
+
+  <div class="def">
+    <b>Modulation format identification (MFI)</b>
+    <p>Working out the format directly from the received signal itself, with no control channel. The receiver looks at the constellation and decides. This makes the network faster to reconfigure and more autonomous, and it is a component of <em class="term">optical performance monitoring</em> (OPM) &mdash; the broader practice of inferring a link's health from the signal rather than from separate test equipment.</p>
+  </div>
+
+  <p>So the task is a five-way classification problem: given a capture of received symbols, output which of QPSK, 8-QAM, 16-QAM, 32-QAM or 64-QAM was sent. That is what all five of our classifiers do.</p>
+</section>
+
+<section id="p5">
+  <div class="pnum">Part 5</div>
+  <h2>The research question, and why it is not obvious</h2>
+
+  <p>Here is the state of the published literature. Before deep learning, MFI was done by computing a handful of statistics from the received symbols &mdash; chiefly <em>cumulants</em> &mdash; and feeding them to a classical classifier such as a support vector machine. Then people started feeding constellation <em>images</em> to convolutional neural networks, and reported large gains. Paper after paper confirms it: CNN on images beats SVM on features.</p>
+
+  <p><strong>That comparison is confounded.</strong> It changes two things simultaneously:</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th></th><th>Classical approach</th><th>Deep-learning paper</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Model</strong></td><td>shallow (SVM)</td><td>deep (CNN)</td></tr>
+        <tr><td><strong>Input</strong></td><td>15 hand-picked numbers</td><td>a full 2-D image</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>So when the CNN wins, nobody can say <em>why</em>. Is it because deep networks are more powerful learners? Or because the image representation preserves information that 15 summary statistics throw away? Those are completely different conclusions with completely different engineering consequences, and the literature does not separate them.</p>
+
+  <h3>How we separate them</h3>
+
+  <p>We add a classifier nobody usually bothers to include: <strong>a multi-layer perceptron trained on exactly the same 15 features the SVM sees</strong>. An MLP is a deep, trained neural network. It just does not get the image.</p>
+
+  <figure>
+    <svg viewBox="0 0 700 330" role="img" aria-label="A two-by-two design: comparing MLP against SVM and k-NN isolates the effect of the algorithm, while comparing the CNN against the MLP isolates the effect of the input representation">
+      <defs>
+        <marker id="a2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><polygon points="0,1 8,4.5 0,8" fill="#4b3bae"/></marker>
+        <marker id="a3" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><polygon points="0,1 8,4.5 0,8" fill="#b4470d"/></marker>
+      </defs>
+      <text x="175" y="26" font-size="12" fill="currentColor" text-anchor="middle" opacity=".55">SHALLOW MODEL</text>
+      <text x="480" y="26" font-size="12" fill="currentColor" text-anchor="middle" opacity=".55">DEEP MODEL</text>
+      <text x="22" y="100" font-size="12" fill="currentColor" opacity=".55" transform="rotate(-90 22 100)" text-anchor="middle">15 FEATURES</text>
+      <text x="22" y="255" font-size="12" fill="currentColor" opacity=".55" transform="rotate(-90 22 255)" text-anchor="middle">IMAGE</text>
+
+      <g stroke="currentColor" fill="none" opacity=".45">
+        <rect x="55" y="48" width="240" height="105"/>
+        <rect x="355" y="48" width="250" height="105"/>
+        <rect x="355" y="200" width="250" height="100"/>
+      </g>
+      <g font-size="14" fill="currentColor" font-family="monospace">
+        <text x="90" y="88">SVM</text><text x="90" y="128">k-NN</text>
+        <text x="390" y="88">MLP</text>
+        <text x="390" y="252">CNN</text>
+      </g>
+      <g font-size="11.5" fill="currentColor" opacity=".6">
+        <text x="150" y="88">93.41%</text><text x="150" y="128">91.58%</text>
+        <text x="450" y="88">93.08%</text>
+        <text x="450" y="252">98.73%</text>
+      </g>
+      <text x="80" y="285" font-size="12.5" fill="currentColor" opacity=".45">(nobody builds</text>
+      <text x="80" y="302" font-size="12.5" fill="currentColor" opacity=".45">a shallow model</text>
+      <text x="80" y="319" font-size="12.5" fill="currentColor" opacity=".45">on raw images)</text>
+
+      <line x1="300" y1="100" x2="350" y2="100" stroke="#4b3bae" stroke-width="2" marker-end="url(#a2)"/>
+      <text x="325" y="88" font-size="11" fill="#4b3bae" text-anchor="middle">algorithm</text>
+      <text x="325" y="120" font-size="11.5" fill="#4b3bae" text-anchor="middle" font-family="monospace">1.83 pts</text>
+
+      <line x1="480" y1="160" x2="480" y2="195" stroke="#b4470d" stroke-width="2" marker-end="url(#a3)"/>
+      <text x="495" y="172" font-size="11" fill="#b4470d">representation</text>
+      <text x="495" y="188" font-size="11.5" fill="#b4470d" font-family="monospace">5.32 pts</text>
+      <text x="495" y="202" font-size="9.5" fill="#b4470d" font-family="monospace">vs best feature model</text>
+    </svg>
+    <figcaption>The design in one picture. Moving left to right changes only the algorithm and buys 1.83 points. Moving down changes only the input and buys 5.32 points &mdash; 2.9 times as much. That 5.32 is measured against the <em>strongest</em> feature model, the SVM; against the MLP directly it is 5.65. The MLP is the cell that makes the comparison possible, and it is the cell the literature leaves empty.</figcaption>
+  </figure>
+
+  <ul>
+    <li><strong>MLP vs SVM vs k-NN</strong> &mdash; identical input, three fundamentally different algorithms. The spread between them is what the <em>algorithm</em> is worth.</li>
+    <li><strong>CNN vs the feature models</strong> &mdash; differing only in what they are fed. The gap is what the <em>representation</em> is worth. The paper quotes it against the best feature model (SVM, 5.32 points) rather than against the MLP (5.65 points), because comparing with the strongest baseline is the harder test.</li>
+  </ul>
+
+  <p>Either outcome would have been a real finding. If the MLP had landed near the CNN, the answer would be "model capacity is what matters". It landed next to the SVM instead. <strong>The MLP is the critical control, and it is the contribution of the paper.</strong> It turns the baselines from an obligation into the core result.</p>
+</section>
+
+<section id="p6">
+  <div class="pnum">Part 6</div>
+  <h2>Building the data: the simulator</h2>
+
+  <p>There is no public dataset of labelled optical constellation captures. We checked. A real testbed &mdash; tunable laser, coherent receiver, real spooled fibre, an optical spectrum analyser &mdash; costs crores. So we simulate the link, implementing the full chain from Part 3 in NumPy.</p>
+
+  <p>Simulation is not merely a fallback here. It is what makes the central claim measurable: we need <strong>exactly controlled OSNR sweeps</strong>, the same signal realisation rendered three different ways, and the ability to train on one channel and test on a deliberately different one. No measurement campaign would give us that cleanly.</p>
+
+  <h3>Proving the simulator is right</h3>
+
+  <p>A simulator you wrote yourself proves nothing unless you can check it against something external. We can, exactly.</p>
+
+  <p>For a noiseless, unit-power constellation, the normalised fourth-order cumulant <code>|C40|/C21&sup2;</code> is an <strong>exact finite sum</strong> over the constellation points &mdash; pure algebra, no simulation involved. If the simulator is faithful, measuring that quantity from generated data must reproduce the algebra.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Format</th><th class="num">Exact theory</th><th class="num">Simulated</th><th class="num">Error</th></tr></thead>
+      <tbody>
+        <tr><td>QPSK</td><td class="num">1.0000</td><td class="num">0.9997</td><td class="num">0.0003</td></tr>
+        <tr><td>8-QAM (star)</td><td class="num">1.5274</td><td class="num">1.5251</td><td class="num">0.0023</td></tr>
+        <tr><td>16-QAM</td><td class="num">0.6800</td><td class="num">0.6830</td><td class="num">0.0030</td></tr>
+        <tr><td>32-QAM (cross)</td><td class="num">0.1900</td><td class="num">0.1868</td><td class="num">0.0032</td></tr>
+        <tr><td>64-QAM</td><td class="num">0.6190</td><td class="num">0.6198</td><td class="num">0.0007</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>All five match to within 0.004. And the three <em>square</em> formats independently match the constants published in the literature (1.0000 / 0.6800 / 0.6191), which validates the analytic formula itself rather than just our use of it.</p>
+
+  <div class="aside">
+    <b>Why derive the theory instead of quoting the literature?</b>
+    <p>Square QAM has one agreed layout, so its cumulants are standard constants you can look up. But 8-QAM and 32-QAM each have <em>several</em> standard variants with different geometries and therefore different cumulants. We initially hardcoded literature values for those two and the check "failed" &mdash; the simulator was right; the reference numbers came from a different variant. Deriving the value from the constellation actually used avoids that trap entirely. If asked "how do you know your simulator is correct?", this is the answer.</p>
+  </div>
+
+  <h3>The dataset</h3>
+
+  <div class="kv">
+    <div><div class="n">5</div><div class="k">modulation formats</div></div>
+    <div><div class="n">21</div><div class="k">OSNR levels, 5 to 25 dB in 1 dB steps</div></div>
+    <div><div class="n">600</div><div class="k">captures per format per OSNR</div></div>
+    <div><div class="n">63,000</div><div class="k">total captures, 4,096 symbols each</div></div>
+  </div>
+
+  <p>Roughly 500 MB, about 4.5 minutes to generate. It is not in the git repository, deliberately: every random number is seeded from <code>config.SEED = 42</code>, so anyone can rebuild it byte-for-byte with one command. Ship the recipe, not the cake.</p>
+</section>
+
+<section id="p7">
+  <div class="pnum">Part 7</div>
+  <h2>Three ways to look at the same signal</h2>
+
+  <p>This is the heart of the experimental design. Every capture is converted into <strong>three different representations, all from the same underlying realisation</strong>, so the comparison between them is exactly fair &mdash; no model gets a different or luckier signal.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Representation</th><th class="num">Shape</th><th>Human pre-processing involved</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Raw I/Q</strong></td><td class="num">2 &times; 512</td><td>none &mdash; the symbols as received</td></tr>
+        <tr><td><strong>Constellation image</strong></td><td class="num">64 &times; 64</td><td>binning into a 2-D histogram</td></tr>
+        <tr><td><strong>Statistical features</strong></td><td class="num">15</td><td>a great deal &mdash; chosen cumulants and amplitude statistics</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Why a 2-D histogram and not a scatter plot?</h3>
+
+  <p>The obvious way to make a constellation image is to draw a matplotlib scatter plot and save the PNG. We bin into a 2-D histogram instead, for three reasons:</p>
+
+  <ul>
+    <li><strong>Speed</strong> &mdash; about 250&times; faster. 63,000 matplotlib figures would take roughly 50 minutes; histograms take seconds. That is the difference between being able to iterate and not.</li>
+    <li><strong>More information</strong> &mdash; a scatter plot saturates to solid colour wherever points overlap, throwing away <em>density</em>. Density is exactly what separates 16-QAM from 64-QAM at low OSNR.</li>
+    <li><strong>No clutter</strong> &mdash; no axes, labels, margins or anti-aliasing artefacts for the network to latch onto.</li>
+  </ul>
+
+  <p>We then apply <code>log(1+x)</code> scaling to the bin counts. Cluster centres receive vastly more hits than the sparse noise tails; on a linear scale those tails round to nearly zero and disappear. A log scale lifts the faint detail so the outer constellation points stay visible &mdash; the same reason astronomical images are displayed logarithmically.</p>
+
+  <div class="aside">
+    <b>A subtle fairness detail</b>
+    <p>The I/Q axis range is fixed at &plusmn;2.5 for <strong>every class</strong>. After normalisation the signal never exceeds about 1.53, so the rest is noise headroom. If each format were auto-scaled to its own extent, the zoom level itself would leak the answer and the CNN could "cheat" without learning shape at all.</p>
+  </div>
+</section>
+
+<section id="p8">
+  <div class="pnum">Part 8</div>
+  <h2>The five classifiers</h2>
+
+  <h3>1. CNN on the constellation image &mdash; 285,941 parameters</h3>
+
+  <p>Three convolutional blocks (Conv 3&times;3 &rarr; BatchNorm &rarr; ReLU &rarr; MaxPool 2&times;2) with 16, 32 and 64 channels, then dropout and two dense layers.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Layer</th><th>What it does</th><th>Why it is there</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Conv2d 3&times;3</strong></td><td>slides a small learned filter across the image</td><td>detects a local pattern anywhere it occurs, reusing the same weights &mdash; far fewer parameters than a dense layer</td></tr>
+        <tr><td><strong>BatchNorm</strong></td><td>rescales each layer's outputs to roughly zero mean, unit variance</td><td>faster and more stable training</td></tr>
+        <tr><td><strong>ReLU</strong></td><td><code>max(0, x)</code></td><td>the non-linearity. Without it, stacked linear layers collapse mathematically into a single linear layer</td></tr>
+        <tr><td><strong>MaxPool 2&times;2</strong></td><td>keeps the largest value in each 2&times;2 square</td><td>halves the image; a cluster shifted by one pixel is still the same cluster</td></tr>
+        <tr><td><strong>Dropout 0.3</strong></td><td>randomly zeroes 30% of activations during training only</td><td>the main defence against overfitting &mdash; forces redundant, distributed representations</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="aside">
+    <b>Why flatten instead of global average pooling? &mdash; a strong viva answer</b>
+    <p>Global average pooling discards <em>where</em> each feature was found. For photographs that is desirable: a cat is a cat in any corner of the frame. Here it would be actively harmful, because the geometric <strong>arrangement</strong> of clusters in the I&ndash;Q plane <em>is</em> the signal. So the 2-D model flattens.</p>
+    <p>The 1-D model below makes the <strong>opposite</strong> choice for the opposite reason. Being able to explain why both are correct demonstrates you understand the architectures rather than having copied them.</p>
+  </div>
+
+  <h3>2. IQ-CNN on raw I/Q &mdash; 27,781 parameters</h3>
+
+  <p>Three 1-D convolutional blocks (kernel sizes 7, 5, 3) followed by <strong>global average pooling</strong> &mdash; correct here, because the symbol stream is stationary, so the absolute position of a symbol within the capture carries no information at all.</p>
+
+  <p><strong>We predicted this model would struggle, and said so before running it.</strong> The transmitted symbols are independent and identically distributed, so their <em>order</em> carries almost no class information &mdash; but a 1-D convolution is built precisely to exploit order. The network is being asked to estimate a <em>distribution</em> from a <em>sequence</em>. The constellation image hands that distribution over directly, because a 2-D histogram <strong>is</strong> a density estimate. This is the clearest single statement of why representation matters.</p>
+
+  <h3>3&ndash;5. MLP, SVM and k-NN on 15 features</h3>
+
+  <p>All three see the identical 15 numbers: seven normalised higher-order cumulants (|C20|, |C40|, |C41|, |C42|, |C60|, |C61|, |C63|) plus eight amplitude and phase statistics.</p>
+
+  <div class="def">
+    <b>What is a cumulant?</b>
+    <p>Moments &mdash; the mean, the mean square, the mean fourth power and so on &mdash; describe the shape of a distribution. Cumulants are specific combinations of moments, constructed so that <strong>the contribution of Gaussian noise cancels out</strong> at fourth order and above. That makes them a noise-robust "fingerprint" of the underlying constellation, and each QAM order has a distinct theoretical cumulant value. This is the standard pre-deep-learning approach to MFI, which is exactly why it is the fair baseline to compare against.</p>
+  </div>
+
+  <div class="def">
+    <b>Why the amplitude statistics help</b>
+    <p>Count the distinct distances from the origin in each format: QPSK has 1 amplitude ring, 8-QAM has 2, 16-QAM has 3, 32-QAM has 5, 64-QAM has 9. The spread and shape of the amplitude histogram is therefore genuinely informative, independent of the cumulants.</p>
+  </div>
+
+  <ul>
+    <li><strong>SVM</strong> (support vector machine) &mdash; finds the boundary that separates classes with the widest possible margin. With an RBF kernel it can draw curved boundaries. Shallow, but a very strong classical method.</li>
+    <li><strong>k-NN</strong> (k-nearest neighbours) &mdash; no training at all; classify a new point by the majority vote of its <em>k</em> closest neighbours in the training set. About as different from an SVM as an algorithm can be, which is the point of including it.</li>
+    <li><strong>MLP</strong> (multi-layer perceptron) &mdash; a fully-connected neural network. Deep and trained, but fed only the 15 features. <strong>The critical control.</strong></li>
+  </ul>
+
+  <div class="aside">
+    <b>Why every model is wrapped in a Pipeline with StandardScaler &mdash; and why reviewers check this</b>
+    <p>The 15 features live on wildly different scales (cumulant ratios sit around 0.5; peak-to-average power ratio can exceed 10). Both k-NN and the RBF-SVM operate on <em>distances</em>, so a large-range feature would dominate purely because of its units.</p>
+    <p>But the deeper reason is <strong>correctness</strong>. Inside a Pipeline, the scaler learns its mean and standard deviation from the <strong>training data only</strong>. Computing those statistics over the whole dataset would leak information about the test set into training and inflate the reported accuracy. This is the single most common silent mistake in applied ML papers, and reviewers look for it.</p>
+  </div>
+</section>
+
+<section id="p9">
+  <div class="pnum">Part 9</div>
+  <h2>How we trained them</h2>
+
+  <h3>The split: 70 / 15 / 15</h3>
+
+  <p>The data is divided into training, validation and test sets, <strong>stratified on (format, OSNR)</strong> &mdash; every one of the 5 &times; 21 = 105 cells is split in the same proportions. A plain random split could, by chance, load the test set with hard low-OSNR cases and make the results meaningless. It also matters because we report accuracy <em>per OSNR level</em>, which needs enough test samples in each cell: we get about 90 per cell, 9,450 test images in total.</p>
+
+  <div class="def">
+    <b>Why three sets and not two?</b>
+    <p><strong>Train</strong> is what the model learns from. <strong>Validation</strong> decides when to stop training and which weights to keep &mdash; because we make decisions using it, it is no longer a neutral judge of performance. <strong>Test</strong> is touched exactly once, at the very end. It is the only honest number, and it is the one that goes in the paper.</p>
+  </div>
+
+  <h3>Every hyperparameter, and the reasoning</h3>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Choice</th><th class="num">Value</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Formats</td><td class="num">5</td><td>published MFI papers use 4&ndash;6; three would make the task artificially easy. Two of ours are non-square</td></tr>
+        <tr><td>OSNR range</td><td class="num">5&ndash;25 dB</td><td>covers "hopeless" to "clean"; 21 points in 1 dB steps draws a smooth curve</td></tr>
+        <tr><td>Symbols per capture</td><td class="num">4,096</td><td>a power of two, and enough to visibly populate all 64 clusters of 64-QAM</td></tr>
+        <tr><td>Image size</td><td class="num">64&times;64</td><td>must resolve 64-QAM's 8&times;8 grid, which needs roughly 40 px minimum. 32&times;32 cannot; 128&times;128 costs 4&times; the compute for little gain</td></tr>
+        <tr><td>Symbol rate</td><td class="num">32 GBaud</td><td>a standard commercial rate, and it feeds the OSNR&rarr;SNR conversion</td></tr>
+        <tr><td>CPE block</td><td class="num">64 symbols</td><td>a short block tracks fast phase noise but is noisy; a long block is smooth but lags. 64 is the usual compromise</td></tr>
+        <tr><td>Conv blocks</td><td class="num">3</td><td>after three poolings, one feature-map pixel covers about 30&times;30 of the input &mdash; the scale of the pattern. <strong>The ablation tests this rather than asserting it</strong></td></tr>
+        <tr><td>Channels</td><td class="num">16&rarr;32&rarr;64</td><td>standard pyramid: as the image shrinks spatially, allow more feature types</td></tr>
+        <tr><td>Kernel</td><td class="num">3&times;3</td><td>the smallest filter with a centre and surround. Two stacked 3&times;3 layers see the same area as one 5&times;5 with fewer parameters and an extra non-linearity. Default since VGG (2014)</td></tr>
+        <tr><td>Batch size</td><td class="num">128</td><td>per-sample updates are noisy; whole-dataset updates give one update per pass. 128 gives a good gradient estimate and about 345 updates per epoch</td></tr>
+        <tr><td>Optimiser</td><td class="num">Adam, lr 1e-3</td><td>maintains a separate auto-tuned step size per weight; works well without hand-tuning</td></tr>
+        <tr><td>Weight decay</td><td class="num">1e-4</td><td>mild L2 regularisation &mdash; discourages large weights, a cheap second defence against overfitting</td></tr>
+        <tr><td>LR schedule</td><td class="num">halve on plateau</td><td>big steps early to find a good region, small steps later to settle into it</td></tr>
+        <tr><td>Early stopping</td><td class="num">patience 4</td><td>if validation accuracy has not improved in 4 epochs the model is starting to memorise. Stop and keep the best weights</td></tr>
+        <tr><td>Seeds</td><td class="num">42, 43, 44</td><td>lets us report mean &plusmn; standard deviation. A single run could be luck</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="p10">
+  <div class="pnum">Part 10</div>
+  <h2>The seven experiments</h2>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Experiment</th><th>The question it answers</th><th>Why a reviewer cares</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Main comparison</strong></td><td>Which representation wins, with the algorithm held constant?</td><td>the paper's central claim</td></tr>
+        <tr><td><strong>Generalisation</strong></td><td>Does it work at OSNR values never seen during training?</td><td>rules out "it just memorised each noise level"</td></tr>
+        <tr><td><strong>Ablation</strong></td><td>Do the architecture choices actually matter?</td><td>converts "I chose 3 layers" into "3 was tested, here is the evidence"</td></tr>
+        <tr><td><strong>Capture length</strong></td><td>How few symbols are enough?</td><td>the practical deployment question, rarely answered</td></tr>
+        <tr><td><strong>Robustness</strong></td><td>Does a model trained on a clean channel survive a dirty one?</td><td>the honest answer to "your simulation is idealised"</td></tr>
+        <tr><td><strong>Confidence</strong></td><td>Does the model know when it is failing?</td><td>a deployed monitor sees its own confidence, never its accuracy</td></tr>
+        <tr><td><strong>Impairment tolerance</strong></td><td>Which specific impairment breaks which model?</td><td>turns a black-box result into a diagnosis</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>The robustness experiment is the most valuable one.</strong> Every simulation-based MFI paper faces the objection <em>"you trained and tested on the same idealised channel, so of course it worked."</em> Training on an <code>ideal</code> channel (AWGN only) and testing on a <code>severe</code> one answers that directly. A large drop is a genuinely useful <em>negative</em> result; a small drop is a strong positive claim. Either way there is something to report &mdash; and this experiment is only possible <em>because</em> the data is simulated.</p>
+</section>
+
+<section id="p11">
+  <div class="pnum">Part 11</div>
+  <h2>Results, in full</h2>
+
+  <p>All numbers are mean &plusmn; standard deviation over three seeds. Every one is generated from the results JSON by <code>paper/make_macros.py</code> &mdash; 135 numbers across the manuscript, none typed by hand, all re-derived and checked by <code>audit_project.py</code>.</p>
+
+  <h3>The main comparison</h3>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Model</th><th>Input</th><th class="num">Accuracy</th><th class="num">Parameters</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>CNN</td><td>64&times;64 image</td><td class="num">98.73 &plusmn; 0.12 %</td><td class="num">285,941</td></tr>
+        <tr><td>SVM</td><td>15 features</td><td class="num">93.41 &plusmn; 0.10 %</td><td class="num">&mdash;</td></tr>
+        <tr><td>MLP</td><td>15 features</td><td class="num">93.08 &plusmn; 0.10 %</td><td class="num">11,013</td></tr>
+        <tr><td>k-NN</td><td>15 features</td><td class="num">91.58 &plusmn; 0.08 %</td><td class="num">&mdash;</td></tr>
+        <tr><td>IQ-CNN</td><td>raw I/Q</td><td class="num">86.56 &plusmn; 4.64 %</td><td class="num">27,781</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Three fundamentally different algorithms on identical features span <strong>1.83 points</strong>. Changing the representation to the density image gains <strong>5.32 points</strong> over the best of them &mdash; <strong>2.9 times larger</strong>. And note that the MLP, a deep network, came out <em>below</em> the SVM, a shallow one: adding depth to the feature pipeline bought nothing at all.</p>
+
+  <h3>Stated as an OSNR margin &mdash; quote this one to an optical engineer</h3>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Model</th><th class="num">OSNR for &ge;95% accuracy</th><th class="num">OSNR for &ge;99%</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>CNN</td><td class="num">7 dB</td><td class="num">10 dB</td></tr>
+        <tr><td>SVM</td><td class="num">14 dB</td><td class="num">18 dB</td></tr>
+        <tr><td>k-NN</td><td class="num">15 dB</td><td class="num">18 dB</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>A <strong>7 dB OSNR margin</strong>. Quote this rather than the accuracy percentage, because it converts directly into reach in kilometres or number of amplifiers &mdash; which is what an optical engineer actually budgets.</p>
+
+  <h3>Robustness &mdash; the strongest result</h3>
+
+  <p>Train on one channel, test on another. The bottom row is the matched case that most papers report; the top row is what happens when the real link turns out worse than the one you trained on.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Trained on</th><th class="num">CNN &rarr; severe</th><th class="num">SVM &rarr; severe</th></tr></thead>
+      <tbody>
+        <tr><td>clean (AWGN only)</td><td class="num">89.78 %</td><td class="num">21.84 %</td></tr>
+        <tr><td>realistic</td><td class="num">91.17 %</td><td class="num">71.98 %</td></tr>
+        <tr><td>severe (matched)</td><td class="num">97.84 %</td><td class="num">94.03 %</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Chance level is 20%. <strong>The feature-based classifier collapses to essentially random guessing</strong> on a channel it never saw, while the CNN degrades gracefully. The reason is mechanistic, not mysterious: cumulants are statistics of an <em>assumed</em> signal model. Change the impairments and the learned decision boundaries stop corresponding to anything real. This is a deployment claim, not merely an accuracy claim.</p>
+
+  <h3>Does the model know when it is failing?</h3>
+
+  <p>Accuracy is visible only to the experimenter. A deployed monitor knows just two things: what it predicted, and how confident it was. So the operationally relevant question is whether the model's own confidence flags its failure.</p>
+
+  <p>We take the maximum softmax probability as the confidence score &mdash; the quantity a real system would threshold on &mdash; and use Platt scaling to get the equivalent from the SVM. Under matched conditions all models are well calibrated, within one point of their accuracy. Under mismatch they diverge sharply: the SVM claims roughly <strong>twice the accuracy it actually achieves</strong>.</p>
+
+  <p>Confidence still <em>ranks</em> errors usefully for both models, so gating on it should restore reliability. The cost of that gating is where the representations separate. <strong>At a 90% confidence gate on the severe channel, the CNN still answers 86.9% of inputs. The SVM answers 0.2%</strong> &mdash; a coverage ratio of about 447&times;. The feature-based monitor can be made accurate only by silencing it: at that operating point it responds to roughly two inputs in every thousand.</p>
+
+  <div class="aside">
+    <b>This is the genuinely novel part</b>
+    <p>To our knowledge, the interaction between <em>input representation</em> and <em>failure self-detectability</em> has not previously been reported. Uncertainty quantification for modulation classification has been studied, but for a single representation. If anyone asks what is new here, this and the cross-channel robustness result are the answer &mdash; not "we used a CNN".</p>
+  </div>
+
+  <h3>The remaining three experiments</h3>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Experiment</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Unseen OSNR</strong></td><td>CNN scores 97.45 &plusmn; 0.16 % on OSNR levels withheld entirely from training &mdash; a drop of only 1.27 points. It learned the physics, not the specific noise levels.</td></tr>
+        <tr><td><strong>Capture length</strong></td><td>The CNN with <strong>512 symbols (94.08%) beats the SVM with 4,096 (93.82%)</strong>. An 8&times; shorter capture still wins &mdash; directly relevant to how fast a monitor can respond.</td></tr>
+        <tr><td><strong>Ablation</strong></td><td>All six architecture variants land within <strong>1.26 points</strong> of each other, despite a 9.2&times; range in parameter count and a 49&times; range in compute. Capacity is not the binding constraint.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="aside">
+    <b>Reading the ablation honestly &mdash; do not overstate this in the PPT</b>
+    <p>The ablation used a single seed, and the non-monotonic behaviour across widths shows run-to-run noise of the same order as the differences between variants. The supported claim is therefore <em>"capacity is not the limiting factor"</em>, <strong>not</strong> <em>"4 channels is optimal"</em>. Over-claiming from one seed is precisely what a reviewer catches.</p>
+  </div>
+
+  <h3>The honest negative: where the SVM wins</h3>
+
+  <p>The impairment tolerance experiment sweeps each distortion separately to find what breaks which model. I/Q imbalance is what destroys the cumulant features: at 2.5 dB of gain imbalance the SVM falls to 20.35% while the CNN holds 95.48%. At 14&deg; of phase skew the SVM is at 20.10%, the CNN at 96.35%.</p>
+
+  <p><strong>But on residual chromatic dispersion the result inverts. At 150 ps/nm the SVM scores 80.14% and the CNN only 54.89%.</strong> We report this prominently rather than burying it. It is a genuine inversion of the paper's own headline, and it is the question most likely to be asked in the viva &mdash; prepare it.</p>
+</section>
+
+<section id="p12">
+  <div class="pnum">Part 12</div>
+  <h2>How we know the results are not wrong</h2>
+
+  <p>Running <code>python verify_project.py</code> executes independent checks that <strong>re-derive</strong> results rather than trusting the saved numbers.</p>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Check</th><th>What it proves</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Recompute accuracy</strong></td><td>reloads the trained weights and recomputes test accuracy from scratch; must match the reported figure to nine decimals</td></tr>
+        <tr><td><strong>No data leakage</strong></td><td>train, validation and test sets share zero samples</td></tr>
+        <tr><td><strong>Constellation theory</strong></td><td>the simulator matches exact analytic cumulants, and square formats match published constants</td></tr>
+        <tr><td><strong>Noise power</strong></td><td>measured SNR matches the target to within 0.02 dB; noise is Gaussian, zero-mean and equal in I and Q</td></tr>
+        <tr><td><strong>Stratification</strong></td><td>every (format, OSNR) cell is split within 2% of the intended 15%</td></tr>
+        <tr><td><strong>Shuffled-label test</strong></td><td>train on randomised labels and accuracy collapses to the 20% chance level</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>That last check is the one that catches "too good to be true" results. If a model still scores well after you destroy the labels, you have a leak somewhere.</p>
+
+  <div class="aside">
+    <b>How this script earned its keep</b>
+    <p>It initially <em>failed</em> two noise checks. Investigation showed <strong>the check was wrong, not the data</strong>: we were measuring noise as <code>1.004 &minus; 1.000</code>, a difference of two nearly-equal numbers, which amplifies random scatter to &plusmn;0.87 dB. The fix was to measure noise directly against the known transmitted symbols. The tolerance then tightened from 0.05 dB to 0.02 dB and everything passed. <strong>When a check fails, find out which side is broken before assuming.</strong></p>
+  </div>
+</section>
+
+<section id="p13">
+  <div class="pnum">Part 13</div>
+  <h2>What the paper does not claim</h2>
+
+  <p>State these plainly. Reviewers respect a clear limitations section, and examiners often ask about them directly &mdash; having the list ready turns a hard question into an easy one.</p>
+
+  <ol>
+    <li><strong>Simulation only</strong> &mdash; no experimental captures from real hardware.</li>
+    <li><strong>Single polarisation</strong> &mdash; commercial long-haul systems are polarisation-multiplexed, sending two independent signals on orthogonal polarisations.</li>
+    <li><strong>Linear channel</strong> &mdash; no fibre nonlinearity and no polarisation-mode dispersion. Nonlinear noise is not Gaussian, so cumulant-based features would behave differently.</li>
+    <li><strong>Fixed symbol rate</strong> &mdash; everything at 32 GBaud; transfer to other rates is untested.</li>
+    <li><strong>Five formats</strong> &mdash; a deployed system might need more, and accuracy typically falls as classes are added.</li>
+    <li><strong>CD modelled at symbol rate</strong> &mdash; captures the inter-symbol interference at decision instants rather than the full continuous waveform. Accurate for small residual dispersion, which is the realistic case, but a simplification.</li>
+    <li><strong>SVM trained on a capped subsample</strong> &mdash; RBF-SVM cost grows roughly quadratically with sample count. Its accuracy on 15 low-dimensional features saturates quickly so this costs it very little, but it should be stated.</li>
+    <li><strong>Novelty is narrower than it first appears</strong> &mdash; Ge et al. (2021, <em>Sensors</em>) performed the representation comparison in <em>wireless</em> automatic modulation classification. The paper cites them and positions honestly: the optical domain, both directions controlled, and a different conclusion.</li>
+  </ol>
+</section>
+
+<section id="p14">
+  <div class="pnum">Part 14</div>
+  <h2>A slide-by-slide outline</h2>
+
+  <p>The guidelines allow 10&ndash;15 slides in 10 minutes. Fourteen is too many at that length; <strong>12 gives you about 50 seconds each</strong> and room to breathe. Each maps to a part above, so whoever builds the deck can pull content straight from the corresponding section.</p>
+
+  <div class="slides">
+    <div><span><b>Title</b>Names, institution, supervisor. Do not read it out.</span></div>
+    <div><span><b>How light carries data</b>Amplitude and phase; one symbol = one (amplitude, phase) pair. Forty seconds, no more. <em>Part 1.</em></span></div>
+    <div><span><b>The constellation diagram</b>The I&ndash;Q plane, then a real constellation clean against noisy. Your best slide. <em>Part 2.</em></span></div>
+    <div><span><b>Five formats, and what breaks them</b>Format table on the left, impairment causes on the right. <em>Parts 2&ndash;3.</em></span></div>
+    <div><span><b>The problem</b>Elastic networks; the receiver must know the format before it can demodulate; MFI removes the control channel. <em>Part 4.</em></span></div>
+    <div><span><b>Literature survey</b>Thematic, not a list of papers. End on the gap. Marks live here &mdash; it is named explicitly in the marking scheme. <em>Part 5.</em></span></div>
+    <div><span><b>The gap, as a 2&times;2</b>The confound: model and input change together, so the comparison cannot attribute the gain. <em>Part 5.</em></span></div>
+    <div><span><b>Our design</b>The 2&times;2 diagram with the MLP filling the empty cell. The contribution slide. <em>Part 5.</em></span></div>
+    <div><span><b>Method</b>Signal chain, the three representations, and the cumulant validation table. <em>Parts 6&ndash;7.</em></span></div>
+    <div><span><b>Headline result</b>The accuracy table, then 1.83 against 5.32 points, 2.9&times;. Note the 5.32 is against the strongest baseline. <em>Part 11.</em></span></div>
+    <div><span><b>Robustness and confidence</b>SVM at 21.84% against a 20% chance level; 86.9% against 0.2% coverage at the same gate. <em>Part 11.</em></span></div>
+    <div><span><b>Limitations and future work</b>The dispersion inversion, the top three limitations, next steps. Ending here builds credibility. <em>Parts 11 and 13.</em></span></div>
+  </div>
+
+  <p>All figures are in the repository under <code>figures/</code> at 300 dpi, ready to drop into slides.</p>
+</section>
+
+<section id="p15">
+  <div class="pnum">Part 15</div>
+  <h2>Glossary</h2>
+
+  <dl class="gloss">
+    <div><dt>Amplitude</dt><dd>How bright the light is &mdash; the height of the wave.</dd></div>
+    <div><dt>Phase</dt><dd>Where a wave is in its cycle, measured in degrees or radians. Two equally bright waves can still differ in phase.</dd></div>
+    <div><dt>Symbol</dt><dd>One transmitted pulse carrying a specific (amplitude, phase) combination. The atom of transmission.</dd></div>
+    <div><dt>Baud / symbol rate</dt><dd>Symbols transmitted per second. 32 GBaud is 32 billion symbols per second.</dd></div>
+    <div><dt>I and Q</dt><dd>In-phase and quadrature &mdash; the horizontal and vertical coordinates of a symbol on the constellation plane. Quadrature means 90&deg; out of phase with I.</dd></div>
+    <div><dt>Constellation diagram</dt><dd>A scatter of all received symbols on the I&ndash;Q plane. The picture this whole project classifies.</dd></div>
+    <div><dt>Modulation format</dt><dd>The agreed set of allowed symbol positions, e.g. QPSK (4) or 64-QAM (64).</dd></div>
+    <div><dt>QAM</dt><dd>Quadrature Amplitude Modulation &mdash; varying both amplitude and phase. The number prefix is the count of distinct symbols.</dd></div>
+    <div><dt>Coherent receiver</dt><dd>A receiver that mixes the incoming light with its own local laser so it can measure phase, not just brightness.</dd></div>
+    <div><dt>Local oscillator</dt><dd>The receiver's own reference laser.</dd></div>
+    <div><dt>EDFA</dt><dd>Erbium-doped fibre amplifier &mdash; boosts the optical signal roughly every 80 km without converting it to electrical form.</dd></div>
+    <div><dt>ASE</dt><dd>Amplified spontaneous emission &mdash; the random light an amplifier adds on its own. The dominant noise on a long link.</dd></div>
+    <div><dt>OSNR</dt><dd>Optical signal-to-noise ratio, in dB. The headline measure of link quality.</dd></div>
+    <div><dt>dB (decibel)</dt><dd>A logarithmic power ratio. 3 dB = 2&times;, 10 dB = 10&times;, 20 dB = 100&times;.</dd></div>
+    <div><dt>AWGN</dt><dd>Additive white Gaussian noise &mdash; the standard mathematical model for ASE.</dd></div>
+    <div><dt>Chromatic dispersion</dt><dd>Different wavelengths travelling at different speeds, spreading a pulse until it overlaps its neighbours.</dd></div>
+    <div><dt>ISI</dt><dd>Inter-symbol interference &mdash; the result of that overlap.</dd></div>
+    <div><dt>Laser linewidth</dt><dd>How fast a laser's phase drifts. Wider linewidth means more phase noise.</dd></div>
+    <div><dt>CPE</dt><dd>Carrier phase estimation/recovery &mdash; the receiver DSP that tracks and removes slow phase drift and frequency offset.</dd></div>
+    <div><dt>I/Q imbalance</dt><dd>Unequal gain in the receiver's two arms, or a hybrid that is not exactly 90&deg;. Skews the constellation.</dd></div>
+    <div><dt>MFI</dt><dd>Modulation format identification &mdash; this project's task.</dd></div>
+    <div><dt>OPM</dt><dd>Optical performance monitoring &mdash; inferring link health from the signal itself.</dd></div>
+    <div><dt>Elastic network</dt><dd>A network that changes modulation format dynamically according to link conditions.</dd></div>
+    <div><dt>Cumulant</dt><dd>A combination of statistical moments built so Gaussian noise cancels at 4th order and above. A noise-robust fingerprint of a constellation.</dd></div>
+    <div><dt>PAPR</dt><dd>Peak-to-average power ratio &mdash; one of the eight amplitude statistics in the feature vector.</dd></div>
+    <div><dt>CNN</dt><dd>Convolutional neural network &mdash; learns local patterns in grid data such as images.</dd></div>
+    <div><dt>MLP</dt><dd>Multi-layer perceptron &mdash; a plain fully-connected neural network. Our critical control.</dd></div>
+    <div><dt>SVM</dt><dd>Support vector machine &mdash; finds the maximum-margin boundary between classes.</dd></div>
+    <div><dt>k-NN</dt><dd>k-nearest neighbours &mdash; classify by majority vote of the k closest training points.</dd></div>
+    <div><dt>Softmax</dt><dd>The function turning a network's raw outputs into probabilities that sum to one. Its maximum is our confidence score.</dd></div>
+    <div><dt>Platt scaling</dt><dd>A method for converting SVM decision scores into calibrated probabilities, so its confidence is comparable to the CNN's.</dd></div>
+    <div><dt>AUROC</dt><dd>Area under the ROC curve &mdash; here, how well confidence ranks the model's own errors. 0.5 is useless, 1.0 is perfect.</dd></div>
+    <div><dt>Stratified split</dt><dd>Dividing data so every (format, OSNR) cell is split in the same proportions, rather than at random.</dd></div>
+    <div><dt>Ablation</dt><dd>Removing or shrinking parts of a model to test whether each choice actually earned its place.</dd></div>
+  </dl>
+</section>
+
+<footer>
+  <span>Source: <a href="https://github.com/techi101/optical-mfi-representation">github.com/techi101/optical-mfi-representation</a> &mdash; <code>README.md</code> has 25 viva questions with answers; <code>HANDOFF.md</code> has the current state of play.</span>
+  <span>Every number on this page is generated from <code>results/*.json</code> and checked by <code>audit_project.py</code>.</span>
+</footer>
+
+</div>
