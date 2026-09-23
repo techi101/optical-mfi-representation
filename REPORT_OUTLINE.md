@@ -34,6 +34,37 @@ Practical rules that keep the score down:
 
 ---
 
+## The two-phase split
+
+The work is already complete, which is unusual at a mid-term and creates its own
+risk: *"if it's done, what is the rest of the project for?"* The answer is to split
+by **question**, not by hiding work.
+
+| | Experiments | Question answered |
+|---|---|---|
+| **September** | main comparison, generalisation, capture length | **Does it work?** |
+| **December** | robustness, confidence, impairment tolerance, ablation | **When does it fail, and why?** |
+
+Both novelty claims — cross-channel robustness, and the representation x
+self-detectability interaction — sit in the December half. That is deliberate: they
+belong at the higher-weighted review.
+
+Say the held experiments are **complete with analysis in progress**, never that they
+are unstarted. If asked for a number, give it immediately.
+
+Two builds exist, from one generator each:
+
+| September | December |
+|---|---|
+| `BTP_MidSem_Presentation.pptx` (12 slides) | `BTP_EndSem_Presentation_DRAFT.pptx` (13) |
+| `Mid_Sem_Report_TEMPLATE.docx` (13 pp filled) | `End_Sem_Report_TEMPLATE.docx` (14 pp filled) |
+
+Regenerate either after supervisor feedback with `node build.js` (September) or
+`PHASE=end node build.js` (December), in the deck and report scratch directories.
+Record the feedback in `FEEDBACK.md` the same day.
+
+---
+
 ## How the marks actually work
 
 | Component | Marks |
