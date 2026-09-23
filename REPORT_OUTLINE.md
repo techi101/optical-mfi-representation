@@ -186,7 +186,9 @@ table can go in an appendix if you are short on space.
 
 ### 4.1 Main comparison
 The five-model table with parameter counts. Then the two numbers that matter:
-algorithm effect **1.83 pts**, representation effect **5.32 pts**, ≈3×. Note that
+algorithm effect **1.83 pts** (the spread across MLP/SVM/k-NN on identical features),
+representation effect **5.32 pts** (the CNN over the **best** of them, the SVM — the
+conservative comparison; against the MLP alone it is 5.65). Ratio **2.9×**. Note that
 the MLP (deep) landed *below* the SVM (shallow) — depth on features bought nothing.
 
 ### 4.2 Accuracy versus OSNR
@@ -302,11 +304,11 @@ length; 12 gives you 50 seconds each and room to breathe.
 | 7 | The gap, stated as the 2×2 | The confound: model and input change together. |
 | 8 | Our design | The 2×2 with the MLP filling the empty cell. **The contribution slide.** |
 | 9 | Method | Signal chain + three representations + the cumulant validation table. |
-| 10 | Headline result | The accuracy table, then 1.83 vs 5.32 points, ≈3×. |
+| 10 | Headline result | The accuracy table, then 1.83 vs 5.32 points, 2.9×. Say the 5.32 is measured against the *strongest* baseline — it is the harder test, and a good line to deliver. |
 | 11 | Robustness + confidence | SVM at 21.84% vs 20% chance; 86.9% vs 0.2% coverage. |
 | 12 | Limitations + future work | The dispersion inversion, top three limitations, next steps. Ending here builds credibility. |
 
-Figures are in `figures/` at 300 dpi.
+Figures are in `figures/` at 300 dpi. For slide 12 use **`figures/slide_dispersion.png`**, generated specifically for projection — the paper's `fig11_tolerance.png` is a five-panel strip at 4.3:1 whose axis labels are unreadable on a screen.
 
 ---
 
