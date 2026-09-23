@@ -158,7 +158,7 @@ publishable.
 - The signal chain, as a numbered list or figure: symbols → residual CD → phase
   noise + frequency offset → carrier phase recovery → I/Q imbalance → AGC → AWGN.
 - **Include the impairment table** (cause → visual effect). Five rows.
-- **Include the CD-before-CPE bug** as a short paragraph. It shows you understand
+- **Include the frequency-offset-before-CPE bug** as a short paragraph (the offset must be applied *before* carrier phase recovery, not after). It shows you understand
   the DSP. Good viva bait — you *want* them to ask about it.
 - **Include the cumulant validation table** (theory vs simulated, all five formats
   within 0.004). This is your answer to "how do you know your simulator is right?"
