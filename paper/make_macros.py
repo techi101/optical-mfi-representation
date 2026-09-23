@@ -216,8 +216,8 @@ def main():
             # coverage and accuracy at the 90% confidence gate
             row = [r for r in conf_i["thresholding"][k]
                    if abs(r["threshold"] - 0.9) < 1e-9][0]
-            M[tag + "Cov90"] = fmt(100 * row["coverage"], 1)
-            M[tag + "Acc90"] = fmt(100 * row["accuracy_on_kept"])
+            M[tag + "CovNinety"] = fmt(100 * row["coverage"], 1)
+            M[tag + "AccNinety"] = fmt(100 * row["accuracy_on_kept"])
         cov_cnn = [r for r in conf_i["thresholding"]["cnn"]
                    if abs(r["threshold"] - 0.9) < 1e-9][0]["coverage"]
         cov_svm = [r for r in conf_i["thresholding"]["svm"]
@@ -229,7 +229,7 @@ def main():
         M["ConfSVMmodSevOver"] = fmt(100 * m["svm"]["severe"]["overconfidence"])
         row = [r for r in conf_r["thresholding"]["svm"]
                if abs(r["threshold"] - 0.9) < 1e-9][0]
-        M["ConfSVMmodCov90"] = fmt(100 * row["coverage"], 1)
+        M["ConfSVMmodCovNinety"] = fmt(100 * row["coverage"], 1)
 
 
     # ---------------- tolerance budget (experiment 7) ----------------
