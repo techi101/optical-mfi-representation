@@ -48,3 +48,7 @@ OUTREACH_EMAILS.md
 # Overleaf upload bundle (regenerated from paper/ and figures/)
 overleaf_upload/
 overleaf_upload.zip
+
+# Word scratch files
+~$*.docx
+_fillcheck.docx
