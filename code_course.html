@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside the MFI Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F3F6F8; --surface:#FFFFFF; --surface2:#E9EFF3;
+  --ink:#13212B; --ink2:#4A5B68; --ink3:#7A8A96;
+  --rule:#D5DEE5; --accent:#0A6C8F; --accentSoft:#DCEEF5;
+  --py:#9A5B00; --pySoft:#FBEFD9; --ml:#1D7148; --mlSoft:#DDF1E6;
+  --warn:#A3361C; --warnSoft:#F9E3DC;
+  --code:#0E1B24; --codeInk:#DCE6EC;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#0D151B; --surface:#141F27; --surface2:#1B2832;
+  --ink:#E4ECF1; --ink2:#A6B6C2; --ink3:#788995;
+  --rule:#27363F; --accent:#52B8DC; --accentSoft:#12303D;
+  --py:#F0B25A; --pySoft:#33250F; --ml:#6FD3A0; --mlSoft:#10301F;
+  --warn:#F08C70; --warnSoft:#3A1C14;
+  --code:#081116; --codeInk:#DCE6EC;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D151B; --surface:#141F27; --surface2:#1B2832;
+  --ink:#E4ECF1; --ink2:#A6B6C2; --ink3:#788995;
+  --rule:#27363F; --accent:#52B8DC; --accentSoft:#12303D;
+  --py:#F0B25A; --pySoft:#33250F; --ml:#6FD3A0; --mlSoft:#10301F;
+  --warn:#F08C70; --warnSoft:#3A1C14;
+  --code:#081116; --codeInk:#DCE6EC;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.62;padding-inline:16px;-webkit-font-smoothing:antialiased}
+.layout{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:250px minmax(0,1fr);gap:40px;padding-block:32px 96px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;max-height:calc(100vh - 32px);overflow-y:auto;font-size:14.5px;border-right:1px solid var(--rule);padding-right:18px}
+nav.toc .brand{font-family:Literata,Georgia,serif;font-weight:650;font-size:19px;line-height:1.2;margin-bottom:14px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+nav.toc a{color:var(--ink2);text-decoration:none;display:grid;grid-template-columns:26px 1fr;padding:3px 0}
+nav.toc a span{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink3);padding-top:2px}
+nav.toc a:hover{color:var(--accent)}
+main{min-width:0;max-width:820px}
+h1,h2,h3,h4{text-wrap:balance;margin:0}
+h1{font-family:Literata,Georgia,serif;font-weight:650;font-size:clamp(32px,5vw,46px);line-height:1.1;letter-spacing:-.015em}
+h2{font-family:Literata,Georgia,serif;font-weight:650;font-size:29px;line-height:1.2;letter-spacing:-.01em}
+h3{font-size:21px;font-weight:700;line-height:1.3}
+h4{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+ul,ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:68ch}
+section{display:flex;flex-direction:column;gap:18px;padding-top:56px;scroll-margin-top:16px}
+section > .kicker{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.sub{display:flex;flex-direction:column;gap:14px;padding-top:14px}
+header.hero{display:flex;flex-direction:column;gap:16px;padding-bottom:28px;border-bottom:2px solid var(--ink)}
+.lead{font-size:19px;color:var(--ink2);max-width:62ch}
+code,kbd{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.86em}
+:not(pre) > code{background:var(--surface2);padding:1px 5px;border-radius:3px}
+kbd{border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+.codewrap{border-radius:6px;overflow:hidden;background:var(--code)}
+.codewrap .file{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#8FA7B6;padding:8px 14px;border-bottom:1px solid #1F313D;display:flex;justify-content:space-between;gap:12px}
+pre{margin:0;overflow-x:auto;padding:14px 16px;font-size:14px;line-height:1.55;color:var(--codeInk);background:var(--code)}
+pre code{font-size:14px;background:none;padding:0}
+.hljs-keyword,.hljs-built_in{color:#FF9E7A}
+.hljs-string{color:#B8E08A}
+.hljs-number{color:#F3C969}
+.hljs-comment{color:#7F97A6;font-style:italic}
+.hljs-title,.hljs-title.function_,.hljs-title.class_{color:#7CCBF2}
+.hljs-params{color:#DCE6EC}
+.hljs-literal{color:#F3C969}
+.hljs-meta{color:#C6A3F2}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule)}
+thead th{background:var(--surface2);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+tbody tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+td code{white-space:nowrap}
+.box{border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.box b.tag{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.py{background:var(--pySoft)} .py b.tag{color:var(--py)}
+.ml{background:var(--mlSoft)} .ml b.tag{color:var(--ml)}
+.note{background:var(--accentSoft)} .note b.tag{color:var(--accent)}
+.warn{background:var(--warnSoft)} .warn b.tag{color:var(--warn)}
+.mermaid{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px;overflow-x:auto;color:var(--ink)}
+.steps{counter-reset:s;list-style:none;padding:0;gap:10px}
+.steps > li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:10px}
+.steps > li::before{content:counter(s);font-family:"JetBrains Mono",monospace;font-weight:600;background:var(--accent);color:var(--surface);border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.card h3{font-size:17px}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink3);font-size:14px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:8px}
+  nav.toc{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--rule);padding:0 0 16px}
+  nav.toc ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Chapters">
+  <div class="brand">Inside the MFI Code</div>
+  <ol>
+    <li><a href="#start"><span>00</span>Get the code</a></li>
+    <li><a href="#map"><span>01</span>Map of every file</a></li>
+    <li><a href="#python"><span>02</span>Python through our code</a></li>
+    <li><a href="#mlbasics"><span>03</span>Machine learning from zero</a></li>
+    <li><a href="#config"><span>04</span>config.py: every value</a></li>
+    <li><a href="#sim"><span>05</span>The simulator</a></li>
+    <li><a href="#models"><span>06</span>The models</a></li>
+    <li><a href="#training"><span>07</span>How training works</a></li>
+    <li><a href="#cycles"><span>08</span>The cycles: seeds &amp; models</a></li>
+    <li><a href="#experiments"><span>09</span>How experiments are coded</a></li>
+    <li><a href="#paper"><span>10</span>From results to paper</a></li>
+    <li><a href="#template"><span>11</span>Train any ML model</a></li>
+    <li><a href="#viva"><span>12</span>Committee questions</a></li>
+    <li><a href="#glossary"><span>13</span>Glossary</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="kicker" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">BTP · NSUT · Chapter 1 code course</div>
+  <h1>Inside the MFI Code</h1>
+  <p class="lead">A course in Python and machine learning, taught through the exact code in <code>D:\research paper</code> that produced our results: CNN 98.73%, SVM 93.41%, MLP 93.08%, k-NN 91.58%. Every snippet below is copied from the real files.</p>
+  <div class="box note"><b class="tag">Who wrote this code</b><p>The code was written by Claude Code (an AI coding tool) under our direction: we chose the problem, the research question and the design decisions, and ran everything on our laptop. This course exists so that each of us understands every line and can explain it. We are open about this; the commit history on GitHub records it too.</p></div>
+</header>
+
+<!-- ========================================================= 00 -->
+<section id="start">
+  <div class="kicker">Chapter 00</div>
+  <h2>Get the code and run it</h2>
+  <p>The whole project is public on GitHub. Anyone can download it without an account.</p>
+  <ol class="steps">
+    <li><span>Open <a href="https://github.com/techi101/optical-mfi-representation">github.com/techi101/optical-mfi-representation</a> in a browser.</span></li>
+    <li><span>Click the green <b>Code</b> button, then <b>Download ZIP</b>. Extract the ZIP (right-click → Extract All).</span></li>
+    <li><span>Open VS Code → <b>File → Open Folder…</b> → choose the extracted folder → <b>Select Folder</b>.</span></li>
+    <li><span>Install the libraries once. In the VS Code terminal (<kbd>Ctrl</kbd>+<kbd>`</kbd>): <code>pip install -r requirements.txt</code></span></li>
+    <li><span>The dataset is not on GitHub (500 MB). Rebuild it, about 5 minutes: <code>python data_generation.py --n-per-class 600 --profile realistic</code></span></li>
+    <li><span>Check everything: <code>python verify_project.py</code> should end with <code>RESULT: ALL CHECKS PASSED</code>. Note: check 7 needs the trained model files from <code>results/</code>, which are only on Nitesh's laptop; on a fresh download, train first (Chapter 08).</span></li>
+  </ol>
+  <div class="box py"><b class="tag">What “python something.py” means</b><p><code>python</code> starts the Python interpreter, the program that reads and runs Python code. <code>something.py</code> is the file it runs. Words after the file name (like <code>--n-per-class 600</code>) are <em>command-line arguments</em>: settings passed into the program. Chapter 02.12 shows how the code reads them.</p></div>
+</section>
+
+<!-- ========================================================= 01 -->
+<section id="map">
+  <div class="kicker">Chapter 01</div>
+  <h2>Map of every file</h2>
+  <p>The project is a pipeline: each file does one job and saves its output to disk, and the next file reads it. That is why you can re-run one step without re-running everything.</p>
+  <pre class="mermaid">
+flowchart TD
+  C[config.py<br/>all settings] --> D[data_generation.py<br/>simulate 63,000 signals]
+  D -->|data/*.npy| T[train_and_evaluate.py<br/>train 5 models x 3 seeds]
+  M[cnn_model.py<br/>CNN, IQ-CNN, MLP] --> T
+  B[baselines.py<br/>SVM, k-NN] --> T
+  T -->|results/main_results.json| E[experiments.py<br/>experiment_confidence.py<br/>experiment_tolerance.py]
+  T --> P[plots.py<br/>figures]
+  E --> P
+  E --> K[paper/make_macros.py<br/>numbers for the paper]
+  T --> K
+  K --> X[paper/paper.tex]
+  V[verify_project.py<br/>audit_project.py] -.checks.-> T
+  </pre>
+  <div class="tbl"><table>
+    <thead><tr><th>File</th><th>Lines</th><th>Job</th><th>Writes</th></tr></thead>
+    <tbody>
+      <tr><td><code>config.py</code></td><td class="num">236</td><td>Every setting in one place: formats, OSNR range, impairments, image size, training hyperparameters</td><td>nothing (others import it)</td></tr>
+      <tr><td><code>data_generation.py</code></td><td class="num">819</td><td>The optical link simulator and the three representations</td><td><code>data/X_images.npy</code>, <code>X_features.npy</code>, <code>X_iq.npy</code>, <code>y_labels.npy</code>, <code>osnr_values.npy</code></td></tr>
+      <tr><td><code>cnn_model.py</code></td><td class="num">416</td><td>The three neural networks, parameter and compute counting, seeding</td><td>nothing (imported)</td></tr>
+      <tr><td><code>baselines.py</code></td><td class="num">197</td><td>SVM and k-NN, each wrapped with a scaler</td><td>nothing (imported)</td></tr>
+      <tr><td><code>train_and_evaluate.py</code></td><td class="num">491</td><td>Splitting, the training loop, evaluation, the main 5-model × 3-seed comparison</td><td><code>results/main_results.json</code>, <code>cnn_best_seed4x.pt</code>, <code>main_run_log.txt</code></td></tr>
+      <tr><td><code>experiments.py</code></td><td class="num">452</td><td>Generalisation, ablation, signal length, robustness</td><td><code>results/exp_*.json</code></td></tr>
+      <tr><td><code>experiment_confidence.py</code></td><td class="num">321</td><td>Can a model tell when it is wrong?</td><td><code>results/exp_confidence_*.json</code></td></tr>
+      <tr><td><code>experiment_tolerance.py</code></td><td class="num">191</td><td>Sweep each impairment alone</td><td><code>results/exp_tolerance.json</code></td></tr>
+      <tr><td><code>plots.py</code></td><td class="num">899</td><td>All figures</td><td><code>figures/*.png</code></td></tr>
+      <tr><td><code>paper/make_macros.py</code></td><td class="num">290</td><td>Turns every result into a LaTeX macro so the paper never has a hand-typed number</td><td><code>paper/results_macros.tex</code></td></tr>
+      <tr><td><code>verify_project.py</code></td><td class="num">434</td><td>8 independent correctness checks</td><td>printout</td></tr>
+      <tr><td><code>audit_project.py</code></td><td class="num">280</td><td>27-point consistency audit</td><td>printout</td></tr>
+    </tbody>
+  </table></div>
+  <p>Total: about 5,200 lines of Python. You do not need to memorise it. You need to know what each file does, what goes in, what comes out, and why.</p>
+</section>
+
+<!-- ========================================================= 02 -->
+<section id="python">
+  <div class="kicker">Chapter 02</div>
+  <h2>Python, taught through our code</h2>
+  <p>Each concept below is shown with a real line from the project, then explained. Read the code, then the explanation, then look at the code again.</p>
+
+  <div class="sub">
+    <h3>2.1 Modules and import</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py</span></div><pre><code class="language-python">import numpy as np
+import torch
+import torch.nn as nn
+from sklearn.model_selection import train_test_split
+import baselines
+import config
+from cnn_model import (MODEL_INPUT_SHAPE, build_model, count_flops,
+                       count_parameters, set_all_seeds)</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Line</th><th>What it does</th></tr></thead><tbody>
+      <tr><td><code>import numpy as np</code></td><td>Load the NumPy library and call it <code>np</code> for short. Every scientific Python program does this.</td></tr>
+      <tr><td><code>import torch.nn as nn</code></td><td>Load PyTorch's neural-network toolbox as <code>nn</code>.</td></tr>
+      <tr><td><code>from sklearn... import train_test_split</code></td><td>Take one specific function out of scikit-learn.</td></tr>
+      <tr><td><code>import config</code></td><td>Load <em>our own</em> file <code>config.py</code>. Any <code>.py</code> file in the same folder is a module you can import. Afterwards <code>config.EPOCHS</code> means “the EPOCHS value inside config.py”.</td></tr>
+      <tr><td><code>from cnn_model import (...)</code></td><td>Take five names from our <code>cnn_model.py</code>. Brackets let the list continue onto the next line.</td></tr>
+    </tbody></table></div>
+    <div class="box py"><b class="tag">Why split code into files</b><p>One file per job means the CNN, the SVM and the plots all read the same settings from <code>config.py</code>. Change a value once, and every file uses the new value. If the same number were typed in two files, you could change one and forget the other, and the results would silently become wrong.</p></div>
+  </div>
+
+  <div class="sub">
+    <h3>2.2 Variables and constants</h3>
+    <div class="codewrap"><div class="file"><span>config.py</span></div><pre><code class="language-python">SEED = 42
+SYMBOL_RATE = 32e9          # 32 GBaud -- a standard lab/commercial rate
+N_SYMBOLS = 4096            # symbols per constellation image
+IMG_SIZE = 64               # 64x64 pixels
+LEARNING_RATE = 1e-3</code></pre></div>
+    <p>A variable is a name pointing to a value. <code>32e9</code> is scientific notation for 32 × 10⁹; <code>1e-3</code> is 0.001. Anything after <code>#</code> is a comment that Python ignores. Names in CAPITALS are a convention meaning “constant: set once, never changed while running”.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.3 Lists, range and list comprehensions</h3>
+    <div class="codewrap"><div class="file"><span>config.py and experiments.py</span></div><pre><code class="language-python">OSNR_LIST = list(range(OSNR_DB_MIN, OSNR_DB_MAX + 1, OSNR_DB_STEP))   # [5, 6, ..., 25]
+N_OSNR = len(OSNR_LIST)                                                # 21
+
+train_osnr = [o for o in config.OSNR_LIST if o % 2 == 0]   # [6, 8, ..., 24]
+test_osnr  = [o for o in config.OSNR_LIST if o % 2 == 1]   # [5, 7, ..., 25]</code></pre></div>
+    <ul>
+      <li><code>range(5, 26, 1)</code> counts 5, 6, … 25. The stop value (26) is <em>not</em> included, which is why the code writes <code>OSNR_DB_MAX + 1</code>.</li>
+      <li><code>len(...)</code> gives how many items a list has.</li>
+      <li><code>[o for o in LIST if condition]</code> is a <b>list comprehension</b>: “make a new list of every <code>o</code> in LIST where the condition is true”. <code>o % 2</code> is the remainder after dividing by 2, so <code>== 0</code> means even. This is exactly how Experiment 3 splits training and test noise levels.</li>
+    </ul>
+  </div>
+
+  <div class="sub">
+    <h3>2.4 Dictionaries</h3>
+    <div class="codewrap"><div class="file"><span>config.py</span></div><pre><code class="language-python">MODULATIONS = {
+    "QPSK":  4,     # square (2x2)
+    "8QAM":  8,     # circular / star -- NOT a square grid
+    "16QAM": 16,    # square (4x4)
+    "32QAM": 32,    # cross-shaped -- NOT a square grid
+    "64QAM": 64,    # square (8x8)
+}
+CLASS_NAMES = list(MODULATIONS.keys())      # ["QPSK", "8QAM", ...]
+N_CLASSES = len(CLASS_NAMES)                # 5
+
+IMPAIRMENT_PROFILES = {
+    "ideal":     dict(laser_linewidth_hz=0.0,   freq_offset_hz=0.0,  ...),
+    "realistic": dict(laser_linewidth_hz=100e3, freq_offset_hz=10e6, ...),
+    "severe":    dict(laser_linewidth_hz=500e3, freq_offset_hz=50e6, ...),
+}</code></pre></div>
+    <p>A dictionary maps a <b>key</b> to a <b>value</b> inside curly braces. <code>MODULATIONS["64QAM"]</code> gives <code>64</code>. <code>.keys()</code> gives all keys. A dictionary can hold other dictionaries: <code>IMPAIRMENT_PROFILES["severe"]["freq_offset_hz"]</code> is <code>50e6</code>. <code>dict(a=1, b=2)</code> is another way to write <code>{"a": 1, "b": 2}</code>.</p>
+    <div class="box py"><b class="tag">Why a dictionary here</b><p>The simulator takes a profile name like <code>"severe"</code> and looks up all six settings at once. Adding a new profile means adding one entry; no other code changes.</p></div>
+  </div>
+
+  <div class="sub">
+    <h3>2.5 Functions: def, inputs, defaults, return, docstring</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py</span></div><pre><code class="language-python">def osnr_db_to_snr_db(osnr_db,
+                      symbol_rate=config.SYMBOL_RATE,
+                      ref_bw=config.REF_BANDWIDTH,
+                      n_pol=config.N_POL):
+    """
+    Convert an OPTICAL signal-to-noise ratio into the ELECTRICAL SNR the
+    receiver actually experiences.
+        SNR = OSNR * (2 * B_ref) / (p * R_s)
+    """
+    osnr_lin = 10.0 ** (osnr_db / 10.0)
+    snr_lin = osnr_lin * (2.0 * ref_bw) / (n_pol * symbol_rate)
+    return 10.0 * np.log10(snr_lin)</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Part</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><code>def name(...):</code></td><td>Defines a function: a named, reusable block of code. The indented lines below belong to it.</td></tr>
+      <tr><td><code>osnr_db</code></td><td>A required input (a <em>parameter</em>). The caller must give it.</td></tr>
+      <tr><td><code>symbol_rate=config.SYMBOL_RATE</code></td><td>An input with a <b>default</b>. If the caller leaves it out, 32e9 is used.</td></tr>
+      <tr><td><code>"""..."""</code></td><td>The <b>docstring</b>: documentation inside the function. Hover over the function in VS Code to see it.</td></tr>
+      <tr><td><code>10.0 ** (osnr_db / 10.0)</code></td><td><code>**</code> is “to the power of”. This converts dB to a plain ratio.</td></tr>
+      <tr><td><code>return ...</code></td><td>Sends the answer back to whoever called the function.</td></tr>
+    </tbody></table></div>
+    <p>Calling it: <code>osnr_db_to_snr_db(25)</code> returns <code>23.93</code>. Calling it with a different rate: <code>osnr_db_to_snr_db(25, symbol_rate=64e9)</code>.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.6 NumPy: maths on whole arrays at once</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py, simulate_received_symbols()</span></div><pre><code class="language-python">snr_db = osnr_db_to_snr_db(osnr_db)
+snr_lin = 10.0 ** (snr_db / 10.0)
+noise_power = 1.0 / snr_lin
+sigma = np.sqrt(noise_power / 2.0)
+noise = (rng.normal(0.0, sigma, n_symbols)
+         + 1j * rng.normal(0.0, sigma, n_symbols))
+rx = sig + noise</code></pre></div>
+    <p><code>rng.normal(0.0, sigma, 4096)</code> makes 4,096 Gaussian random numbers in one go. <code>sig + noise</code> adds two arrays of 4,096 numbers element by element, with no <code>for</code> loop. This is called <b>vectorisation</b>. It is about 100× faster than a Python loop because NumPy runs the loop in compiled C code.</p>
+    <div class="box ml"><b class="tag">Physics in code</b><p>After gain control the signal power is 1, so noise power = 1/SNR. Complex noise splits its power equally between I and Q, so each gets standard deviation √(noise_power/2). Four lines of code implement exactly that sentence.</p></div>
+  </div>
+
+  <div class="sub">
+    <h3>2.7 Complex numbers: how I and Q are stored</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py</span></div><pre><code class="language-python">inner = np.exp(1j * (np.pi / 4 + np.arange(4) * np.pi / 2))   # 8-QAM inner ring
+residual_phase = phase - estimate
+return sig * np.exp(1j * residual_phase)                      # rotate each symbol</code></pre></div>
+    <p>Python writes the imaginary unit as <code>1j</code>. A received symbol is one complex number <code>I + 1j*Q</code>: <code>.real</code> gives I, <code>.imag</code> gives Q, <code>abs()</code> gives amplitude. Multiplying by <code>np.exp(1j*θ)</code> rotates a point by angle θ. That single idea is how the code places the 8-QAM ring and how it adds phase noise.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.8 Boolean masks: select by a condition</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py and train_and_evaluate.py</span></div><pre><code class="language-python"># 32-QAM: cut the 4 corners off a 6x6 grid
+corner = (np.abs(pts.real) == 5) &amp; (np.abs(pts.imag) == 5)
+points = pts[~corner]
+
+# accuracy at one OSNR level
+m = (osnr_true == o)
+per[int(o)] = float(np.mean(y_pred[m] == y_true[m]))</code></pre></div>
+    <p><code>np.abs(pts.real) == 5</code> gives an array of <code>True/False</code>, one per point. <code>&amp;</code> means “and” for arrays; <code>~</code> means “not”. <code>pts[mask]</code> keeps only the <code>True</code> positions. The second example keeps only test signals at one OSNR, then <code>y_pred[m] == y_true[m]</code> gives True where the model was right, and <code>np.mean</code> of True/False is the fraction correct: the accuracy.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.9 Loops and enumerate: building the dataset</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py, build_dataset()</span></div><pre><code class="language-python">idx = 0
+for cls_id, (name, order) in enumerate(config.MODULATIONS.items()):
+    for osnr_db in config.OSNR_LIST:
+        block_seed = seed + cls_id * 1000 + int(osnr_db)
+        rng = np.random.default_rng(block_seed)
+        for _ in range(n_per_class_per_osnr):
+            rx = simulate_received_symbols(rng, order, osnr_db,
+                                           n_symbols=n_symbols, profile=prof)
+            X_img[idx] = iq_to_image(rx, img_size=img_size)
+            X_feat[idx] = iq_to_features(rx)
+            if store_iq:
+                X_iq[idx] = iq_to_raw(rx)
+            y[idx] = cls_id
+            osnr_arr[idx] = osnr_db
+            idx += 1</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Line</th><th>What it does</th></tr></thead><tbody>
+      <tr><td><code>enumerate(...items())</code></td><td>Loops over (index, (name, order)) pairs: <code>(0, ("QPSK", 4))</code>, <code>(1, ("8QAM", 8))</code>… The index becomes the class label 0–4.</td></tr>
+      <tr><td><code>for osnr_db in OSNR_LIST</code></td><td>A loop inside a loop (<b>nested</b>): 5 formats × 21 OSNR levels = 105 blocks.</td></tr>
+      <tr><td><code>block_seed = ...</code></td><td>A different, fixed seed per block, so the data is reproducible and changing one block does not reshuffle the rest.</td></tr>
+      <tr><td><code>for _ in range(600)</code></td><td>Repeat 600 times. <code>_</code> means “a counter I don't use”.</td></tr>
+      <tr><td><code>rx = simulate_...</code></td><td>Simulate ONE received signal…</td></tr>
+      <tr><td><code>X_img[idx] = ...</code> etc.</td><td>…and store it three ways in row <code>idx</code> of pre-made arrays. Row <code>idx</code> of every array describes the same signal.</td></tr>
+      <tr><td><code>idx += 1</code></td><td>Move to the next row. Same as <code>idx = idx + 1</code>.</td></tr>
+    </tbody></table></div>
+    <p>Total: 5 × 21 × 600 = 63,000 passes through the innermost block.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.10 Classes: how a neural network is defined</h3>
+    <div class="codewrap"><div class="file"><span>cnn_model.py (simplified from FeatureMLP)</span></div><pre><code class="language-python">class FeatureMLP(nn.Module):
+    def __init__(self, n_classes=None, n_features=15, hidden=(128, 64),
+                 dropout=0.2):
+        super().__init__()
+        layers = []
+        prev = n_features
+        for h in hidden:
+            layers += [nn.Linear(prev, h), nn.BatchNorm1d(h),
+                       nn.ReLU(inplace=True), nn.Dropout(dropout)]
+            prev = h
+        layers.append(nn.Linear(prev, n_classes))
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.net(x)</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Part</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><code>class FeatureMLP(nn.Module):</code></td><td>A <b>class</b> is a blueprint for objects. <code>(nn.Module)</code> means it <b>inherits</b> from PyTorch's base network class, so it gets training, saving and parameter tracking for free.</td></tr>
+      <tr><td><code>__init__(self, ...)</code></td><td>The <b>constructor</b>: runs once when you write <code>model = FeatureMLP()</code>. It creates the layers. <code>self</code> means “this particular model object”.</td></tr>
+      <tr><td><code>super().__init__()</code></td><td>Run the parent class's setup first. Always required in PyTorch models.</td></tr>
+      <tr><td><code>layers += [...]</code></td><td>Add four layers to a list, once per hidden size (128, then 64).</td></tr>
+      <tr><td><code>nn.Sequential(*layers)</code></td><td>Chain the layers so data flows through them in order. <code>*layers</code> unpacks the list into separate arguments.</td></tr>
+      <tr><td><code>self.net = ...</code></td><td>Store it on the object so <code>forward</code> can use it.</td></tr>
+      <tr><td><code>forward(self, x)</code></td><td>What happens to input <code>x</code>: pass it through the chain. PyTorch calls this when you write <code>model(x)</code>.</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="sub">
+    <h3>2.11 Decorators: the @ lines</h3>
+    <div class="codewrap"><div class="file"><span>cnn_model.py and experiment_confidence.py</span></div><pre><code class="language-python">@staticmethod
+def _block(in_ch, out_ch): ...
+
+@torch.no_grad()
+def torch_confidence(kind, model, X, idx, batch_size=512): ...</code></pre></div>
+    <p>A line starting with <code>@</code> is a <b>decorator</b>: it changes how the function below behaves. <code>@staticmethod</code> means the method does not need <code>self</code>. <code>@torch.no_grad()</code> tells PyTorch not to record the calculations for learning, which saves memory and time when we only predict.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.12 Command-line arguments with argparse</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py, main()</span></div><pre><code class="language-python">p = argparse.ArgumentParser()
+p.add_argument("--seeds", type=int, nargs="+", default=[42, 43, 44])
+p.add_argument("--epochs", type=int, default=config.EPOCHS)
+p.add_argument("--models", type=str, nargs="+",
+               default=list(NEURAL + CLASSICAL))
+args = p.parse_args()</code></pre></div>
+    <p>This lets you change settings from the terminal without editing the file. <code>python train_and_evaluate.py --seeds 42 --epochs 5</code> runs one seed for 5 epochs, a quick test. <code>nargs="+"</code> means “one or more values”. With no flags, the defaults are used: 3 seeds, 20 epochs, all 5 models. Afterwards, <code>args.seeds</code> holds the list.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.13 Saving results: with open and json</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py</span></div><pre><code class="language-python">path = os.path.join(config.RESULTS_DIR, args.out)
+with open(path, "w") as f:
+    json.dump(results, f, indent=2)</code></pre></div>
+    <p><code>os.path.join</code> builds a file path that works on Windows and Linux. <code>with open(path, "w") as f:</code> opens the file for writing and closes it automatically when the block ends, even if an error happens. <code>json.dump</code> writes a Python dictionary as a JSON text file: readable by humans and by any language. Every experiment saves its numbers this way, and <code>make_macros.py</code> later reads them back.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.14 Printing with format strings</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py</span></div><pre><code class="language-python">print("    TEST ACCURACY = {:.4f}".format(res["overall_accuracy"]))
+print("  dataset  : {:,} samples".format(len(data["y"])))</code></pre></div>
+    <p><code>{}</code> is a slot filled by <code>.format(...)</code>. <code>{:.4f}</code> means 4 decimal places (0.9870); <code>{:,}</code> adds thousands separators (63,000). The newer f-string style does the same: <code>f"{acc:.4f}"</code>.</p>
+  </div>
+
+  <div class="sub">
+    <h3>2.15 if __name__ == "__main__"</h3>
+    <div class="codewrap"><div class="file"><span>end of most files</span></div><pre><code class="language-python">if __name__ == "__main__":
+    main()</code></pre></div>
+    <p>When you run a file directly, Python sets <code>__name__</code> to <code>"__main__"</code>, so <code>main()</code> runs. When another file imports it (<code>import train_and_evaluate as te</code>), this block is skipped. That is how <code>experiments.py</code> reuses the training loop from <code>train_and_evaluate.py</code> without starting the main experiment.</p>
+  </div>
+</section>
+
+<!-- ========================================================= 03 -->
+<section id="mlbasics">
+  <div class="kicker">Chapter 03</div>
+  <h2>Machine learning from zero</h2>
+  <p>A machine-learning model is a function with adjustable numbers inside it. Training means adjusting those numbers until the function gives correct answers on examples where we already know the answer.</p>
+
+  <div class="sub">
+    <h3>3.1 The core idea in one example</h3>
+    <p>Our CNN takes a 64×64 image and outputs 5 numbers, one score per format. It has 285,941 adjustable numbers called <b>weights</b> (or <b>parameters</b>). At the start they are random, so its answers are random: about 20% correct.</p>
+    <ol class="steps">
+      <li><span><b>Forward pass.</b> Feed an image in; get 5 scores out, e.g. <code>[2.1, 0.3, 4.0, 0.2, 1.1]</code>. The highest (4.0, position 2) is the guess: 16-QAM.</span></li>
+      <li><span><b>Loss.</b> Compare with the true answer. If the truth is 16-QAM, the loss is small; if it was 64-QAM, the loss is large. The loss is one number meaning “how wrong”.</span></li>
+      <li><span><b>Backward pass (backpropagation).</b> Calculus works out, for every one of the 285,941 weights, whether increasing it would raise or lower the loss. That direction is the <b>gradient</b>.</span></li>
+      <li><span><b>Step.</b> Nudge every weight a tiny amount in the direction that lowers the loss. How big the nudge is: the <b>learning rate</b> (0.001).</span></li>
+      <li><span><b>Repeat</b> for thousands of examples. The weights slowly settle into values that give correct answers.</span></li>
+    </ol>
+    <div class="box ml"><b class="tag">Analogy</b><p>You are blindfolded on a hilly field and want to reach the lowest point. You feel the slope under your feet (the gradient) and take a small step downhill (the learning rate). Repeat. The height of the ground is the loss; your position is the set of weights. This is <b>gradient descent</b>.</p></div>
+  </div>
+
+  <div class="sub">
+    <h3>3.2 The words you will be asked about</h3>
+    <div class="tbl"><table><thead><tr><th>Term</th><th>Meaning</th><th>In our project</th></tr></thead><tbody>
+      <tr><td>Sample / example</td><td>One input with its correct answer</td><td>One simulated signal + its format</td></tr>
+      <tr><td>Label (y)</td><td>The correct answer</td><td>0 = QPSK … 4 = 64-QAM</td></tr>
+      <tr><td>Features (X)</td><td>The input numbers</td><td>An image, raw I/Q, or 15 statistics</td></tr>
+      <tr><td>Classification</td><td>Predicting a category</td><td>Which of 5 formats</td></tr>
+      <tr><td>Weights / parameters</td><td>The adjustable numbers inside a model</td><td>CNN 285,941; MLP 11,013</td></tr>
+      <tr><td>Hyperparameters</td><td>Settings <em>we</em> choose, not learned</td><td>Learning rate 0.001, batch 128, dropout 0.3</td></tr>
+      <tr><td>Loss</td><td>A number for how wrong the model is</td><td>Cross-entropy</td></tr>
+      <tr><td>Batch (mini-batch)</td><td>A small group of samples processed together before one weight update</td><td>128 signals</td></tr>
+      <tr><td>Iteration</td><td>One weight update (one batch)</td><td>44,100 ÷ 128 ≈ 345 per epoch</td></tr>
+      <tr><td>Epoch</td><td>One full pass over all training samples</td><td>Up to 20</td></tr>
+      <tr><td>Overfitting</td><td>Memorising training data instead of learning general patterns: great on training, poor on new data</td><td>Prevented by dropout, weight decay, early stopping</td></tr>
+      <tr><td>Underfitting</td><td>Model too simple to learn the pattern</td><td>Ruled out: the tiny CNN still scores 98.37%</td></tr>
+      <tr><td>Training set</td><td>Data the model learns from</td><td>70% = 44,100 signals</td></tr>
+      <tr><td>Validation set</td><td>Data checked after each epoch to decide when to stop</td><td>15% = 9,450</td></tr>
+      <tr><td>Test set</td><td>Data used once at the end for the reported number</td><td>15% = 9,450</td></tr>
+      <tr><td>Accuracy</td><td>Fraction of correct predictions</td><td>98.73% for the CNN</td></tr>
+      <tr><td>Confusion matrix</td><td>Table of true class vs predicted class</td><td>Shows 16-QAM and 64-QAM get confused at low OSNR</td></tr>
+      <tr><td>Seed</td><td>Starting point of the random number generator</td><td>42, 43, 44</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="sub">
+    <h3>3.3 Two families of models</h3>
+    <div class="grid2">
+      <div class="card"><h3>Classical ML (scikit-learn)</h3><p>SVM, k-NN. Fast, few settings, work on a small table of numbers (our 15 features). Training is one line: <code>model.fit(X, y)</code>. No epochs, no loop you write yourself.</p></div>
+      <div class="card"><h3>Deep learning (PyTorch)</h3><p>CNN, IQ-CNN, MLP. Many layers of weights, learn directly from rich inputs like images. You write the training loop yourself: epochs, batches, loss, optimiser.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= 04 -->
+<section id="config">
+  <div class="kicker">Chapter 04</div>
+  <h2>config.py: every value and why</h2>
+  <p>Every “magic number” in the project lives in this one file. When the committee asks “why that value?”, the answer is here.</p>
+  <div class="tbl"><table><thead><tr><th>Name</th><th>Value</th><th>Why this value</th></tr></thead><tbody>
+    <tr><td><code>SEED</code></td><td class="num">42</td><td>Any fixed number makes runs reproducible; 42 is conventional</td></tr>
+    <tr><td><code>MODULATIONS</code></td><td>QPSK, 8QAM, 16QAM, 32QAM, 64QAM</td><td>Published studies use 4–6 formats; two are non-square so grid spacing alone cannot solve it</td></tr>
+    <tr><td><code>OSNR_DB_MIN / MAX / STEP</code></td><td class="num">5 / 25 / 1</td><td>From nearly hopeless to clean; 21 points draw a smooth curve</td></tr>
+    <tr><td><code>SYMBOL_RATE</code></td><td class="num">32e9</td><td>32 GBaud, a standard commercial rate</td></tr>
+    <tr><td><code>REF_BANDWIDTH</code></td><td class="num">12.5e9</td><td>0.1 nm at 1550 nm, the industry standard for quoting OSNR</td></tr>
+    <tr><td><code>N_POL</code></td><td class="num">1</td><td>Single polarisation keeps the study focused</td></tr>
+    <tr><td><code>WAVELENGTH</code></td><td class="num">1550e-9</td><td>The C-band telecom wavelength (used by the dispersion formula)</td></tr>
+    <tr><td><code>IMPAIRMENT_PROFILES</code></td><td>ideal / realistic / severe</td><td>Realistic = a good commercial receiver; severe = a stressed link for robustness tests</td></tr>
+    <tr><td><code>CPE_BLOCK_SYMBOLS</code></td><td class="num">64</td><td>Short blocks track fast drift but are noisy; long blocks lag. 64 is a standard compromise</td></tr>
+    <tr><td><code>N_SYMBOLS</code></td><td class="num">4096</td><td>Enough to fill all 64 clusters of 64-QAM; a power of two</td></tr>
+    <tr><td><code>N_PER_CLASS_PER_OSNR</code></td><td class="num">600</td><td>63,000 total: enough per cell for stable per-OSNR accuracy, fits in laptop memory</td></tr>
+    <tr><td><code>IMG_SIZE</code></td><td class="num">64</td><td>Must resolve 64-QAM's 8×8 grid; 32 is too small, 128 costs 4× compute</td></tr>
+    <tr><td><code>IQ_RANGE</code></td><td class="num">2.5</td><td>Same zoom for every format so zoom cannot leak the answer</td></tr>
+    <tr><td><code>TRAIN / VAL / TEST_FRAC</code></td><td class="num">0.70 / 0.15 / 0.15</td><td>Standard split</td></tr>
+    <tr><td><code>BATCH_SIZE</code></td><td class="num">128</td><td>Stable gradients and BatchNorm statistics; fits a laptop CPU</td></tr>
+    <tr><td><code>EPOCHS</code></td><td class="num">20</td><td>Upper limit; early stopping usually ends sooner</td></tr>
+    <tr><td><code>LEARNING_RATE</code></td><td class="num">1e-3</td><td>Adam's standard starting value</td></tr>
+    <tr><td><code>EARLY_STOP_PATIENCE</code></td><td class="num">4</td><td>Stop after 4 epochs without validation improvement</td></tr>
+    <tr><td><code>WEIGHT_DECAY</code></td><td class="num">1e-4</td><td>Mild penalty on large weights; a second defence against overfitting</td></tr>
+    <tr><td><code>N_IQ_SYMBOLS</code></td><td class="num">512</td><td>Raw I/Q input length: 4 kB per signal, a realistic capture</td></tr>
+  </tbody></table></div>
+</section>
+
+<!-- ========================================================= 05 -->
+<section id="sim">
+  <div class="kicker">Chapter 05</div>
+  <h2>The simulator: data_generation.py</h2>
+  <p>No public dataset of optical constellations exists, so this file makes one. The main function is <code>simulate_received_symbols()</code>; it calls one small function per impairment, in the order a real receiver meets them.</p>
+  <div class="codewrap"><div class="file"><span>data_generation.py, simulate_received_symbols() (core lines)</span></div><pre><code class="language-python">constellation = make_constellation(order)
+tx = rng.choice(constellation, size=n_symbols, replace=True)         # (1) transmit
+sig = apply_chromatic_dispersion(tx, profile["residual_cd_ps_nm"])   # (2)
+sig = apply_phase_impairments(sig, rng,                              # (3)(4)(5)
+                              profile["laser_linewidth_hz"],
+                              profile["freq_offset_hz"])
+if res_phase_deg &gt; 0:                                                 # extra jitter
+    sig = sig * np.exp(1j * rng.normal(0.0, np.deg2rad(res_phase_deg), n_symbols))
+sig = apply_iq_imbalance(sig, profile["iq_gain_imbalance_db"],       # (6)
+                         profile["iq_phase_skew_deg"])
+sig = sig / np.sqrt(np.mean(np.abs(sig) ** 2))                       # (7) gain control
+# (8) add Gaussian noise at the chosen OSNR  (see Chapter 02.6)
+rx = sig + noise</code></pre></div>
+  <div class="tbl"><table><thead><tr><th>Function</th><th>What it models</th><th>How the code does it</th></tr></thead><tbody>
+    <tr><td><code>make_constellation(order)</code></td><td>The ideal points of one format</td><td>Square grid via <code>np.meshgrid</code>; star for 8-QAM; 6×6 grid minus corners for 32-QAM; scaled to power 1</td></tr>
+    <tr><td><code>rng.choice(...)</code></td><td>Random transmitted symbols</td><td>Picks 4,096 points at random, with repetition</td></tr>
+    <tr><td><code>apply_chromatic_dispersion</code></td><td>Pulses spreading into each other</td><td>FFT → multiply by <code>exp(j·β₂L/2·ω²)</code> → inverse FFT</td></tr>
+    <tr><td><code>apply_phase_impairments</code></td><td>Laser phase noise + frequency offset + carrier phase recovery</td><td><code>np.cumsum</code> of random steps (random walk) + a linear ramp; then average over 64-symbol blocks and subtract</td></tr>
+    <tr><td><code>apply_iq_imbalance</code></td><td>Unequal I/Q arms, non-90° hybrid</td><td>Scale I and Q differently; mix a little I into Q</td></tr>
+    <tr><td>normalise</td><td>Receiver gain control</td><td>Divide by the square root of mean power</td></tr>
+    <tr><td>noise</td><td>Amplifier (ASE) noise</td><td>Gaussian, power = 1/SNR</td></tr>
+  </tbody></table></div>
+  <div class="box warn"><b class="tag">The bug that was fixed</b><p>The first version added the frequency offset <em>after</em> carrier phase recovery, so nothing removed it and constellations were destroyed even at 25 dB. A real receiver removes it, so the offset is now added before recovery, inside <code>apply_phase_impairments</code>.</p></div>
+
+  <div class="sub">
+    <h3>5.1 The three representations</h3>
+    <div class="codewrap"><div class="file"><span>data_generation.py</span></div><pre><code class="language-python">def iq_to_image(rx, img_size=64, iq_range=2.5):
+    counts, _, _ = np.histogram2d(rx.real, rx.imag, bins=img_size,
+                                  range=[[-iq_range, iq_range], [-iq_range, iq_range]])
+    img = np.log1p(counts)
+    img = img / img.max()
+    return (img * 255.0).astype(np.uint8).T
+
+def iq_to_raw(rx, n_keep=512):
+    seg = rx[:n_keep]
+    return np.stack([seg.real, seg.imag]).astype(np.float32)     # shape (2, 512)
+
+def iq_to_features(rx):
+    # 8 moments -&gt; 7 cumulants (Gaussian noise cancels) -&gt; + 8 amplitude statistics
+    ...
+    return np.asarray(feats, dtype=np.float32)                   # shape (15,)</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Function</th><th>Output</th><th>Feeds</th><th>Key choice</th></tr></thead><tbody>
+      <tr><td><code>iq_to_image</code></td><td>64×64 grey image</td><td>CNN</td><td>2-D histogram (counts per cell), log brightness, fixed ±2.5 zoom</td></tr>
+      <tr><td><code>iq_to_raw</code></td><td>2×512 numbers</td><td>IQ-CNN</td><td>First 512 samples, in order; <code>[:512]</code> is slicing</td></tr>
+      <tr><td><code>iq_to_features</code></td><td>15 numbers</td><td>MLP, SVM, k-NN</td><td>7 normalised cumulants + 8 amplitude statistics</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<!-- ========================================================= 06 -->
+<section id="models">
+  <div class="kicker">Chapter 06</div>
+  <h2>The models: cnn_model.py and baselines.py</h2>
+
+  <div class="sub">
+    <h3>6.1 The CNN</h3>
+    <div class="codewrap"><div class="file"><span>cnn_model.py, ConstellationCNN</span></div><pre><code class="language-python">class ConstellationCNN(nn.Module):
+    def __init__(self, n_classes=None, dropout=0.3, n_blocks=3, base_ch=16,
+                 img_size=None):
+        super().__init__()
+        layers = []
+        in_ch = 1
+        ch = base_ch
+        for _ in range(n_blocks):
+            layers.append(self._block(in_ch, ch))
+            in_ch = ch
+            ch *= 2
+        self.features = nn.Sequential(*layers)
+        with torch.no_grad():
+            dummy = torch.zeros(1, 1, img_size, img_size)
+            flat = self.features(dummy).numel()
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Dropout(dropout),
+            nn.Linear(flat, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, n_classes),
+        )
+
+    @staticmethod
+    def _block(in_ch, out_ch):
+        return nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, 3, padding=1, bias=False),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
+        )
+
+    def forward(self, x):
+        return self.classifier(self.features(x))</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Line</th><th>What it does</th></tr></thead><tbody>
+      <tr><td><code>for _ in range(n_blocks)</code></td><td>Build 3 conv blocks. <code>ch *= 2</code> doubles the filter count each time: 16 → 32 → 64.</td></tr>
+      <tr><td><code>n_blocks=3, base_ch=16</code></td><td>Defaults. Experiment 4 (ablation) changes these to 2/4 blocks and 4/8/32 filters, using the same class.</td></tr>
+      <tr><td><code>dummy = torch.zeros(...)</code></td><td>A clever trick: push a blank image through the conv blocks to find out how many numbers come out (4,096), so the dense layer size is computed, never hand-typed.</td></tr>
+      <tr><td><code>nn.Conv2d(in, out, 3, padding=1)</code></td><td>Slide 3×3 learnable filters over the image. <code>padding=1</code> keeps the size the same.</td></tr>
+      <tr><td><code>nn.BatchNorm2d</code></td><td>Rescale outputs to mean 0, variance 1: faster, more stable training.</td></tr>
+      <tr><td><code>nn.ReLU</code></td><td>Turn negatives into 0. Without a non-linearity, stacked layers collapse into one.</td></tr>
+      <tr><td><code>nn.MaxPool2d(2)</code></td><td>Keep the max of each 2×2 square: halves height and width.</td></tr>
+      <tr><td><code>nn.Flatten()</code></td><td>64×8×8 → a list of 4,096 numbers, keeping position (where clusters are).</td></tr>
+      <tr><td><code>nn.Dropout(0.3)</code></td><td>During training, randomly zero 30% of these numbers so the model cannot rely on any single one.</td></tr>
+      <tr><td><code>nn.Linear(4096, 64)</code>, <code>nn.Linear(64, 5)</code></td><td>Dense layers: every input connected to every output. The last gives the 5 scores.</td></tr>
+    </tbody></table></div>
+
+    <h4>Where 285,941 comes from</h4>
+    <div class="tbl"><table><thead><tr><th>Layer</th><th>Calculation</th><th>Weights</th></tr></thead><tbody>
+      <tr><td>Conv 1 (1→16) + BatchNorm</td><td>1×16×3×3 = 144, + BN 2×16 = 32</td><td class="num">176</td></tr>
+      <tr><td>Conv 2 (16→32) + BatchNorm</td><td>16×32×9 = 4,608, + 64</td><td class="num">4,672</td></tr>
+      <tr><td>Conv 3 (32→64) + BatchNorm</td><td>32×64×9 = 18,432, + 128</td><td class="num">18,560</td></tr>
+      <tr><td>Dense 4096→64</td><td>4,096×64 + 64 biases</td><td class="num">262,208</td></tr>
+      <tr><td>Dense 64→5</td><td>64×5 + 5 biases</td><td class="num">325</td></tr>
+      <tr><td><b>Total</b></td><td></td><td class="num"><b>285,941</b></td></tr>
+    </tbody></table></div>
+    <p>92% of the weights sit in one dense layer. That is why the ablation found a tiny CNN (4 base filters, 67,457 weights) works just as well: the conv layers do the real work.</p>
+  </div>
+
+  <div class="sub">
+    <h3>6.2 The MLP control: where 11,013 comes from</h3>
+    <div class="tbl"><table><thead><tr><th>Layer</th><th>Calculation</th><th>Weights</th></tr></thead><tbody>
+      <tr><td>Dense 15→128</td><td>15×128 + 128</td><td class="num">2,048</td></tr>
+      <tr><td>BatchNorm 128</td><td>2×128</td><td class="num">256</td></tr>
+      <tr><td>Dense 128→64</td><td>128×64 + 64</td><td class="num">8,256</td></tr>
+      <tr><td>BatchNorm 64</td><td>2×64</td><td class="num">128</td></tr>
+      <tr><td>Dense 64→5</td><td>64×5 + 5</td><td class="num">325</td></tr>
+      <tr><td><b>Total</b></td><td></td><td class="num"><b>11,013</b></td></tr>
+    </tbody></table></div>
+    <p>Deliberately generous for only 15 inputs, so nobody can say it lost for being too small.</p>
+  </div>
+
+  <div class="sub">
+    <h3>6.3 IQ-CNN in one paragraph</h3>
+    <p>Same idea in 1-D: <code>nn.Conv1d</code> blocks with kernels 7, 5, 3 and 32, 64, 64 filters on the 2×512 input, then <code>nn.AdaptiveAvgPool1d(1)</code> (average over time) and two dense layers. 27,781 weights. It averages instead of flattening because a symbol's position in time carries no meaning, whereas a cluster's position in the I–Q plane does.</p>
+  </div>
+
+  <div class="sub">
+    <h3>6.4 SVM and k-NN (baselines.py)</h3>
+    <div class="codewrap"><div class="file"><span>baselines.py</span></div><pre><code class="language-python">def make_svm(C=10.0, gamma="scale", seed=config.SEED):
+    return Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm", SVC(C=C, gamma=gamma, kernel="rbf",
+                    cache_size=1000, random_state=seed)),
+    ])
+
+def make_knn(n_neighbors=5):
+    return Pipeline([
+        ("scaler", StandardScaler()),
+        ("knn", KNeighborsClassifier(n_neighbors=n_neighbors, n_jobs=-1)),
+    ])</code></pre></div>
+    <p>A <b>Pipeline</b> chains steps: first the scaler (subtract mean, divide by standard deviation), then the classifier. When you call <code>.fit(X_train, y_train)</code>, the scaler learns its mean and standard deviation from the training data only, so no test information leaks into training. <code>n_jobs=-1</code> uses all CPU cores.</p>
+    <div class="tbl"><table><thead><tr><th>Setting</th><th>Why</th></tr></thead><tbody>
+      <tr><td><code>kernel="rbf"</code></td><td>Lets the SVM draw curved boundaries; our classes overlap at low OSNR</td></tr>
+      <tr><td><code>C=10</code></td><td>Penalty for training mistakes; a mild step up from the default 1 for large noisy data</td></tr>
+      <tr><td><code>gamma="scale"</code></td><td>How far each point's influence reaches; set automatically from the data</td></tr>
+      <tr><td><code>n_neighbors=5</code></td><td>k=1 is fooled by one noisy neighbour; big k blurs boundaries</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<!-- ========================================================= 07 -->
+<section id="training">
+  <div class="kicker">Chapter 07</div>
+  <h2>How the model is actually trained</h2>
+  <p>This is the heart of the project: the function <code>train_torch_model()</code> in <code>train_and_evaluate.py</code>. It trains all three neural networks with identical settings. Below is the real code, trimmed only of print statements.</p>
+
+  <div class="sub">
+    <h3>7.1 Step 1: split the data</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py, make_splits()</span></div><pre><code class="language-python">idx = np.arange(len(y))
+strat = y.astype(np.int64) * 1000 + osnr.astype(np.int64)
+idx_train, idx_tmp = train_test_split(
+    idx, test_size=(config.VAL_FRAC + config.TEST_FRAC),
+    random_state=seed, shuffle=True, stratify=strat)
+rel_test = config.TEST_FRAC / (config.VAL_FRAC + config.TEST_FRAC)
+idx_val, idx_test = train_test_split(
+    idx_tmp, test_size=rel_test,
+    random_state=seed, shuffle=True, stratify=strat[idx_tmp])</code></pre></div>
+    <ul>
+      <li>It splits <b>row numbers</b>, not data, so one split serves images, features and raw I/Q alike.</li>
+      <li><code>strat = y*1000 + osnr</code> gives each (format, OSNR) pair a unique number, e.g. 16-QAM (2) at 14 dB → 2014. <code>stratify=strat</code> makes all 105 groups split in the same proportion.</li>
+      <li>First cut: 70% train, 30% rest. Second cut: the rest in half → 15% validation, 15% test.</li>
+    </ul>
+  </div>
+
+  <div class="sub">
+    <h3>7.2 Step 2: prepare the input</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py, prepare_input()</span></div><pre><code class="language-python">if kind == "cnn":
+    return torch.from_numpy(data["img"]).unsqueeze(1), None
+if kind == "mlp":
+    X = data["feat"]
+    mu = X[idx_train].mean(axis=0, keepdims=True)
+    sd = X[idx_train].std(axis=0, keepdims=True) + 1e-8
+    Xn = ((X - mu) / sd).astype(np.float32)
+    return torch.from_numpy(Xn), (mu, sd)</code></pre></div>
+    <p><code>torch.from_numpy</code> turns a NumPy array into a PyTorch <b>tensor</b> (PyTorch's array type, which can track gradients). <code>.unsqueeze(1)</code> adds a channel dimension: 63,000×64×64 becomes 63,000×1×64×64, because a Conv2d expects channels. For the MLP, the mean <code>mu</code> and spread <code>sd</code> use <code>X[idx_train]</code>, the training rows only. <code>+ 1e-8</code> avoids dividing by zero.</p>
+  </div>
+
+  <div class="sub">
+    <h3>7.3 Step 3: the training loop, line by line</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py, train_torch_model()</span></div><pre><code class="language-python">set_all_seeds(seed)
+model = build_model(kind)
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=lr,
+                             weight_decay=config.WEIGHT_DECAY)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode="max", factor=0.5, patience=2)
+best_val, best_state, stale = -1.0, None, 0
+
+for epoch in range(1, epochs + 1):
+    model.train()
+    for bi in iterate_minibatches(len(tr), batch_size, rng):
+        rows = tr[bi]
+        xb = batch_to_float(kind, X[rows])
+        yb = yt[rows]
+        optimizer.zero_grad()
+        out = model(xb)
+        loss = criterion(out, yb)
+        loss.backward()
+        optimizer.step()
+
+    model.eval()
+    with torch.no_grad():
+        # ... same forward pass over the validation rows, counting correct ...
+    val_acc = vc / vn
+    scheduler.step(val_acc)
+
+    if val_acc &gt; best_val:
+        best_val = val_acc
+        best_state = {k: v.detach().clone()
+                      for k, v in model.state_dict().items()}
+        stale = 0
+    else:
+        stale += 1
+    if stale &gt;= patience:
+        break
+
+model.load_state_dict(best_state)
+return model, history</code></pre></div>
+    <div class="tbl"><table><thead><tr><th>Line</th><th>What it does and why</th></tr></thead><tbody>
+      <tr><td><code>set_all_seeds(seed)</code></td><td>Fix every random generator (NumPy, Python, PyTorch) so the same seed gives the same result</td></tr>
+      <tr><td><code>build_model(kind)</code></td><td>Create a fresh CNN, IQ-CNN or MLP with random starting weights</td></tr>
+      <tr><td><code>nn.CrossEntropyLoss()</code></td><td>The loss for classification: small when the right class gets a high score, large when the model is confidently wrong</td></tr>
+      <tr><td><code>torch.optim.Adam(...)</code></td><td>The optimiser: the rule for nudging weights. Adam adapts the step size for each weight automatically. <code>lr=0.001</code>; <code>weight_decay=1e-4</code> gently shrinks weights to prevent overfitting</td></tr>
+      <tr><td><code>ReduceLROnPlateau(..., factor=0.5, patience=2)</code></td><td>If validation accuracy has not improved for 2 epochs, halve the learning rate: big steps early, fine steps later</td></tr>
+      <tr><td><code>for epoch in range(1, epochs+1)</code></td><td>The <b>outer cycle</b>: up to 20 passes over the training data</td></tr>
+      <tr><td><code>model.train()</code></td><td>Training mode: dropout active, BatchNorm updating</td></tr>
+      <tr><td><code>for bi in iterate_minibatches(...)</code></td><td>The <b>inner cycle</b>: shuffle training rows and take 128 at a time, about 345 batches per epoch</td></tr>
+      <tr><td><code>xb = batch_to_float(...)</code></td><td>Convert this batch to decimals; images are divided by 255 to lie in 0–1</td></tr>
+      <tr><td><code>optimizer.zero_grad()</code></td><td>Clear the gradients left over from the previous batch (PyTorch adds them up otherwise)</td></tr>
+      <tr><td><code>out = model(xb)</code></td><td><b>Forward pass</b>: 128 inputs → 128×5 scores</td></tr>
+      <tr><td><code>loss = criterion(out, yb)</code></td><td>Compare scores with true labels → one number</td></tr>
+      <tr><td><code>loss.backward()</code></td><td><b>Backpropagation</b>: compute the gradient for every weight</td></tr>
+      <tr><td><code>optimizer.step()</code></td><td><b>Update</b>: every weight moves a little downhill. This line is where learning happens</td></tr>
+      <tr><td><code>model.eval()</code> + <code>torch.no_grad()</code></td><td>Evaluation mode (dropout off), no gradient bookkeeping: measure validation accuracy</td></tr>
+      <tr><td><code>if val_acc &gt; best_val:</code></td><td>Best epoch so far? Save a copy of all weights (<code>state_dict</code>) and reset the counter</td></tr>
+      <tr><td><code>stale += 1</code> … <code>if stale &gt;= patience: break</code></td><td><b>Early stopping</b>: 4 epochs without improvement → stop; the model has started memorising</td></tr>
+      <tr><td><code>model.load_state_dict(best_state)</code></td><td>Return the best weights ever seen, not the last ones</td></tr>
+    </tbody></table></div>
+    <p>A real training log from our laptop (CNN, seed 42, epoch 1): <code>train loss 0.1495, train acc 0.9368, val loss 0.0674, val acc 0.9737, 83.1 s</code>.</p>
+  </div>
+
+  <div class="sub">
+    <h3>7.4 Step 4: predict and evaluate on the test set</h3>
+    <div class="codewrap"><div class="file"><span>train_and_evaluate.py, evaluate()</span></div><pre><code class="language-python">def evaluate(y_true, y_pred, osnr_true, osnr_list=None):
+    per = {}
+    for o in osnr_list:
+        m = (osnr_true == o)
+        per[int(o)] = float(np.mean(y_pred[m] == y_true[m]))
+    return {
+        "overall_accuracy": float(np.mean(y_pred == y_true)),
+        "accuracy_per_osnr": per,
+        "confusion_matrix": confusion_matrix(y_true, y_pred, ...).tolist(),
+    }</code></pre></div>
+    <p>Prediction takes the highest of the 5 scores (<code>argmax</code>) for each test signal. <code>evaluate</code> returns three things: overall accuracy, accuracy at each of the 21 OSNR levels (which draws the accuracy-vs-OSNR curve), and the confusion matrix. The test set is used here, once.</p>
+  </div>
+</section>
+
+<!-- ========================================================= 08 -->
+<section id="cycles">
+  <div class="kicker">Chapter 08</div>
+  <h2>The cycles: seeds and models</h2>
+  <p>The main experiment runs three nested cycles. Understanding this structure answers “how did you run it?” and “why several runs?”.</p>
+  <pre class="mermaid">
+flowchart TD
+  A[main: for seed in 42, 43, 44] --> B[run_one_seed:<br/>make a new split with this seed]
+  B --> C[for kind in cnn, iqcnn, mlp, svm, knn]
+  C --> D{neural network?}
+  D -->|yes| E[train_torch_model:<br/>epoch loop, batch loop]
+  D -->|no| F[fit SVM or k-NN in one call]
+  E --> G[predict test set, evaluate]
+  F --> G
+  G --> C
+  C -->|all 5 done| A
+  A -->|all 3 seeds done| H[aggregate_seeds:<br/>mean and std per model]
+  H --> I[save results/main_results.json]
+  </pre>
+  <div class="codewrap"><div class="file"><span>train_and_evaluate.py (core of main and run_one_seed)</span></div><pre><code class="language-python">for seed in args.seeds:                                   # cycle 1: 3 seeds
+    per_seed[seed] = run_one_seed(data, seed, ...)
+
+def run_one_seed(data, seed, ...):
+    idx_train, idx_val, idx_test = make_splits(y, osnr, seed=seed)
+    for kind in models:                                   # cycle 2: 5 models
+        if kind in NEURAL:
+            X, _ = prepare_input(kind, data, idx_train)
+            model, hist = train_torch_model(kind, X, y,   # cycle 3: epochs x batches
+                                            idx_train, idx_val, seed=seed)
+            y_pred = predict_torch(kind, model, X, idx_test)
+        else:
+            clf, _ = baselines.fit_baseline(maker(), data["feat"][idx_train], ...)
+            y_pred = clf.predict(data["feat"][idx_test])
+        res = evaluate(y_test, y_pred, osnr_test)
+
+agg = aggregate_seeds(per_seed)                           # mean +/- std</code></pre></div>
+  <div class="tbl"><table><thead><tr><th>Cycle</th><th>Runs</th><th>Why</th></tr></thead><tbody>
+    <tr><td>Seeds</td><td class="num">3 (42, 43, 44)</td><td>Each seed changes the random split, the starting weights and dropout. If a result holds across all three, it is not luck. The paper reports mean ± standard deviation: CNN 98.73 ± 0.12%</td></tr>
+    <tr><td>Models</td><td class="num">5</td><td>All five on the <em>same split</em> in each seed, so the comparison is fair</td></tr>
+    <tr><td>Epochs</td><td class="num">up to 20</td><td>Passes over the data until early stopping</td></tr>
+    <tr><td>Batches</td><td class="num">~345 per epoch</td><td>44,100 ÷ 128 weight updates per epoch</td></tr>
+  </tbody></table></div>
+  <div class="box ml"><b class="tag">Mean ± standard deviation</b><p><code>aggregate_seeds</code> takes the 3 accuracies of each model (for the CNN: 98.70, 98.59, 98.89; for the SVM: 93.27, 93.45, 93.51) and reports their average and spread. If two models' ranges overlap heavily, you cannot claim one is better. Ours don't overlap: CNN 98.73 ± 0.12 vs SVM 93.41 ± 0.10.</p></div>
+  <p><b>How it was run:</b> <code>python train_and_evaluate.py --seeds 42 43 44</code>. It took 67 minutes on the laptop: CNN about 16 minutes per seed, IQ-CNN 6, MLP 22 seconds, SVM 10 seconds, k-NN under 1 second.</p>
+</section>
+
+<!-- ========================================================= 09 -->
+<section id="experiments">
+  <div class="kicker">Chapter 09</div>
+  <h2>How each experiment is coded</h2>
+  <p>Every experiment reuses the same building blocks from Chapter 07 (<code>make_splits</code>, <code>prepare_input</code>, <code>train_torch_model</code>, <code>evaluate</code>) and changes <em>one thing</em>. That is good experimental design and good code design at once.</p>
+  <div class="tbl"><table><thead><tr><th>Experiment</th><th>Function</th><th>What the loop changes</th><th>Output file</th><th>Result</th></tr></thead><tbody>
+    <tr><td>1. Main comparison</td><td><code>train_and_evaluate.main</code></td><td>seeds × models</td><td><code>main_results.json</code></td><td>CNN 98.73%, SVM 93.41%</td></tr>
+    <tr><td>2. OSNR margin</td><td>read from Exp 1's per-OSNR accuracy</td><td>(no new training)</td><td><code>main_results.json</code></td><td>CNN 95% at 7 dB, SVM 14 dB</td></tr>
+    <tr><td>3. Unseen OSNR</td><td><code>experiments.experiment_generalise</code></td><td>train on even OSNR, test on odd</td><td><code>exp_generalise.json</code></td><td>97.45 ± 0.16%</td></tr>
+    <tr><td>4. Ablation</td><td><code>experiments.experiment_ablation</code></td><td>6 CNN shapes</td><td><code>exp_ablation.json</code></td><td>97.11–98.37% for all</td></tr>
+    <tr><td>5. Signal length</td><td><code>experiments.experiment_symbols</code></td><td>128 … 4,096 symbols</td><td><code>exp_symbols.json</code></td><td>512 symbols: 94.08%</td></tr>
+    <tr><td>6. Robustness</td><td><code>experiments.experiment_robustness</code></td><td>train profile × test profile</td><td><code>exp_robustness.json</code></td><td>ideal→severe: CNN 89.78%, SVM 21.84%</td></tr>
+    <tr><td>7a. Confidence</td><td><code>experiment_confidence.main</code></td><td>confidence thresholds</td><td><code>exp_confidence_ideal.json</code></td><td>90% gate: CNN answers 86.9%, SVM 0.2%</td></tr>
+    <tr><td>7b. Tolerance</td><td><code>experiment_tolerance.main</code></td><td>one impairment swept at a time</td><td><code>exp_tolerance.json</code></td><td>dispersion favours SVM</td></tr>
+  </tbody></table></div>
+
+  <div class="sub">
+    <h3>9.1 Experiment 3: split by noise level</h3>
+    <div class="codewrap"><div class="file"><span>experiments.py, experiment_generalise()</span></div><pre><code class="language-python">train_osnr = [o for o in config.OSNR_LIST if o % 2 == 0]
+test_osnr  = [o for o in config.OSNR_LIST if o % 2 == 1]
+is_train_osnr = np.isin(osnr, train_osnr)
+pool_train = np.where(is_train_osnr)[0]
+pool_test  = np.where(~is_train_osnr)[0]
+for seed in seeds:
+    ...
+    for kind in ("cnn", "mlp"):
+        model, _ = te.train_torch_model(kind, X, y, idx_train, idx_val, seed=seed)</code></pre></div>
+    <p><code>np.isin</code> marks rows whose OSNR is in the even list; <code>np.where(...)[0]</code> turns True positions into row numbers. The test set contains only odd OSNR levels the model never saw.</p>
+  </div>
+
+  <div class="sub">
+    <h3>9.2 Experiment 4: a loop over model shapes, with checkpoints</h3>
+    <div class="codewrap"><div class="file"><span>experiments.py, experiment_ablation()</span></div><pre><code class="language-python">variants = []
+for n_blocks in (2, 3, 4):
+    variants.append(dict(n_blocks=n_blocks, base_ch=16))
+for base_ch in (4, 8, 32):
+    variants.append(dict(n_blocks=3, base_ch=base_ch))
+
+for v in variants:
+    if (v["n_blocks"], v["base_ch"]) in done:
+        continue
+    model, hist = te.train_torch_model("cnn", X, y, idx_train, idx_val,
+                                       epochs=epochs, seed=seed, model_kwargs=v)
+    ...
+    _save_incremental("exp_ablation.json", {...})   # write after EVERY variant</code></pre></div>
+    <p>Each variant is a small dictionary of settings passed into the same CNN class via <code>model_kwargs</code>. <code>continue</code> skips variants already finished, and the results are saved after every variant. That design came from experience: two long runs were killed by Windows when the browser used too much memory, and checkpointing means a crash loses one step, not the whole run.</p>
+  </div>
+
+  <div class="sub">
+    <h3>9.3 Experiment 6: a 3×3 grid of train and test channels</h3>
+    <div class="codewrap"><div class="file"><span>experiments.py, experiment_robustness()</span></div><pre><code class="language-python">profiles = ["ideal", "realistic", "severe"]
+for train_prof in profiles:
+    d = datasets[train_prof]
+    idx_train, idx_val, idx_test = te.make_splits(y, osnr, seed=seed)
+    cnn, _ = te.train_torch_model("cnn", X, y, idx_train, idx_val, seed=seed)
+    svm, _ = baselines.fit_baseline(baselines.make_svm(), d["feat"][idx_train], ...)
+    for test_prof in profiles:
+        d2 = datasets[test_prof]
+        idx_eval = idx_test if test_prof == train_prof else np.arange(len(d2["y"]))
+        ...  # evaluate both models on d2</code></pre></div>
+    <p>Outer loop: train once per channel. Inner loop: test that model on every channel. When train and test channel differ, the whole other dataset is fair to test on because it was never used in training.</p>
+  </div>
+
+  <div class="sub">
+    <h3>9.4 Experiment 7a: confidence thresholds</h3>
+    <div class="codewrap"><div class="file"><span>experiment_confidence.py</span></div><pre><code class="language-python">logits = model(te.batch_to_float(kind, X[rows]))
+p = torch.softmax(logits, dim=1)        # scores -&gt; probabilities that sum to 1
+c, k = p.max(dim=1)                     # c = confidence, k = predicted class
+...
+for thr in (0.0, 0.5, 0.7, 0.9, 0.95, 0.99):
+    keep = conf &gt;= thr
+    rows.append({"threshold": thr,
+                 "coverage": float(keep.mean()),
+                 "accuracy_on_kept": float(correct[keep].mean())})</code></pre></div>
+    <p><b>Softmax</b> turns 5 raw scores into 5 probabilities. The largest is the model's confidence. For each threshold, <code>keep</code> marks signals the model is confident enough to answer; <code>coverage</code> is the fraction kept, and accuracy is measured on those alone.</p>
+  </div>
+
+  <div class="sub">
+    <h3>9.5 Experiment 7b: sweeping one impairment</h3>
+    <div class="codewrap"><div class="file"><span>experiment_tolerance.py</span></div><pre><code class="language-python">SWEEPS = {
+    "laser_linewidth_hz":   [0.0, 50e3, 100e3, 250e3, 500e3, 1e6, 2e6],
+    "freq_offset_hz":       [0.0, 5e6, 10e6, 25e6, 50e6, 100e6, 200e6],
+    "iq_gain_imbalance_db": [0.0, 0.15, 0.3, 0.6, 1.0, 1.5, 2.5],
+    "iq_phase_skew_deg":    [0.0, 1.0, 2.0, 4.0, 6.0, 9.0, 14.0],
+    "residual_cd_ps_nm":    [0.0, 5.0, 10.0, 25.0, 50.0, 90.0, 150.0],
+}</code></pre></div>
+    <p>A dictionary of lists: for each impairment, seven values to test, while the others stay at realistic. Models trained on realistic are tested at each point. The “budget” is the largest value where accuracy stays at or above 90%.</p>
+  </div>
+</section>
+
+<!-- ========================================================= 10 -->
+<section id="paper">
+  <div class="kicker">Chapter 10</div>
+  <h2>From results to paper</h2>
+  <div class="grid2">
+    <div class="card"><h3>plots.py</h3><p>Reads the JSON result files and draws every figure into <code>figures/</code> with Matplotlib. No number is copied by hand.</p></div>
+    <div class="card"><h3>paper/make_macros.py</h3><p>Reads the JSON files and writes each result as a LaTeX macro such as <code>\CNNacc</code> = 98.73. The paper uses the macro, not the number, so re-running an experiment updates the paper automatically. 135 numbers are handled this way.</p></div>
+    <div class="card"><h3>verify_project.py</h3><p>8 independent checks, including reloading the saved CNN and recomputing its accuracy (98.70% reported = 98.70% recomputed for seed 42).</p></div>
+    <div class="card"><h3>audit_project.py</h3><p>27 consistency checks across results, figures and paper. Run it after any change.</p></div>
+  </div>
+  <h3>The full rebuild, in order</h3>
+  <div class="codewrap"><div class="file"><span>terminal, inside the project folder</span><span>≈ 5 hours total</span></div><pre><code class="language-python">python data_generation.py --n-per-class 600 --profile realistic   # ~5 min
+python train_and_evaluate.py --seeds 42 43 44                     # ~65 min
+python experiments.py generalise                                   # ~33 min
+python experiments.py ablation                                     # ~44 min
+python experiments.py symbols                                      # ~23 min
+python experiments.py robustness                                   # ~30 min
+python experiment_confidence.py --train-profile ideal              # ~12 min
+python experiment_tolerance.py                                     # ~70 min
+python plots.py &amp;&amp; python paper/make_macros.py
+python verify_project.py &amp;&amp; python audit_project.py</code></pre></div>
+  <p>Close the browser before long runs: two runs were killed when Chrome and Brave held about 7 GB of memory.</p>
+</section>
+
+<!-- ========================================================= 11 -->
+<section id="template">
+  <div class="kicker">Chapter 11</div>
+  <h2>How to train any ML model: the template</h2>
+  <p>Strip away the optics and our project follows a recipe you can reuse on any problem. Learn these two templates and you can start any ML project.</p>
+
+  <div class="sub">
+    <h3>11.1 The six steps, always</h3>
+    <div class="tbl"><table><thead><tr><th>#</th><th>Step</th><th>In our code</th><th>Question to ask yourself</th></tr></thead><tbody>
+      <tr><td>1</td><td>Load data: X and y</td><td><code>load_data()</code></td><td>What is one sample? What is the label?</td></tr>
+      <tr><td>2</td><td>Split train / val / test</td><td><code>make_splits()</code></td><td>Is it stratified? Is the test set touched only once?</td></tr>
+      <tr><td>3</td><td>Scale / prepare inputs</td><td><code>prepare_input()</code>, Pipeline</td><td>Are statistics from training data only?</td></tr>
+      <tr><td>4</td><td>Choose and fit a model</td><td><code>train_torch_model()</code>, <code>.fit()</code></td><td>Simple baseline first; then a stronger model</td></tr>
+      <tr><td>5</td><td>Predict on test</td><td><code>predict_torch()</code>, <code>.predict()</code></td><td>Is this the first time the model sees test data?</td></tr>
+      <tr><td>6</td><td>Evaluate</td><td><code>evaluate()</code></td><td>Overall and per-condition accuracy, confusion matrix, several seeds</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="sub">
+    <h3>11.2 Template A: classical ML with scikit-learn</h3>
+    <div class="codewrap"><div class="file"><span>template_sklearn.py</span></div><pre><code class="language-python">import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# 1. LOAD: X is (n_samples, n_features), y is (n_samples,)
+X = np.load("X.npy")
+y = np.load("y.npy")
+
+# 2. SPLIT: 80% train, 20% test, same class mix in both
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2,
+                                          random_state=42, stratify=y)
+
+# 3 + 4. SCALE + FIT: the Pipeline learns scaling from training data only
+model = Pipeline([("scale", StandardScaler()), ("clf", SVC(C=10))])
+model.fit(X_tr, y_tr)
+
+# 5. PREDICT
+y_pred = model.predict(X_te)
+
+# 6. EVALUATE
+print("accuracy:", accuracy_score(y_te, y_pred))
+print(confusion_matrix(y_te, y_pred))</code></pre></div>
+    <p>To try a different model, change only the <code>("clf", ...)</code> part, e.g. <code>KNeighborsClassifier(5)</code> or <code>RandomForestClassifier()</code>. Every scikit-learn model has <code>.fit</code> and <code>.predict</code>.</p>
+  </div>
+
+  <div class="sub">
+    <h3>11.3 Template B: a neural network with PyTorch</h3>
+    <div class="codewrap"><div class="file"><span>template_pytorch.py</span></div><pre><code class="language-python">import copy
+import torch
+import torch.nn as nn
+
+torch.manual_seed(42)
+
+# A. DATA as tensors (already split into train / val / test)
+X_tr, y_tr = torch.tensor(X_train_np).float(), torch.tensor(y_train_np)
+X_va, y_va = torch.tensor(X_val_np).float(),   torch.tensor(y_val_np)
+
+# B. MODEL: define layers in __init__, connect them in forward
+class Net(nn.Module):
+    def __init__(self, n_in, n_classes):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_in, 64), nn.ReLU(), nn.Dropout(0.2),
+            nn.Linear(64, n_classes))
+    def forward(self, x):
+        return self.net(x)
+
+model = Net(n_in=X_tr.shape[1], n_classes=5)
+loss_fn = nn.CrossEntropyLoss()                               # C. LOSS
+opt = torch.optim.Adam(model.parameters(), lr=1e-3)           # D. OPTIMISER
+
+best_acc, best_w, stale = 0.0, None, 0
+for epoch in range(20):                                       # E. EPOCH LOOP
+    model.train()
+    order = torch.randperm(len(y_tr))
+    for i in range(0, len(order), 128):                       #    BATCH LOOP
+        idx = order[i:i + 128]
+        loss = loss_fn(model(X_tr[idx]), y_tr[idx])           # forward + loss
+        opt.zero_grad()
+        loss.backward()                                       # gradients
+        opt.step()                                            # update weights
+    model.eval()                                              # F. VALIDATE
+    with torch.no_grad():
+        acc = (model(X_va).argmax(1) == y_va).float().mean().item()
+    if acc &gt; best_acc:
+        best_acc, best_w, stale = acc, copy.deepcopy(model.state_dict()), 0
+    else:
+        stale += 1
+        if stale &gt;= 4:                                        #    early stopping
+            break
+model.load_state_dict(best_w)                                 # G. keep the best</code></pre></div>
+    <p>For images, replace <code>Net</code> with a CNN (like our <code>ConstellationCNN</code>) and give the input a channel dimension. Everything else stays the same.</p>
+  </div>
+
+  <div class="sub">
+    <h3>11.4 Decisions you must make, and how we made them</h3>
+    <div class="tbl"><table><thead><tr><th>Decision</th><th>Rule of thumb</th><th>Our choice</th></tr></thead><tbody>
+      <tr><td>Which model?</td><td>Always start with a simple baseline; then a model suited to the input type</td><td>SVM/k-NN baselines; CNN for images</td></tr>
+      <tr><td>Input representation</td><td>Keep the information that separates the classes</td><td>Density image (keeps where and how dense clusters are)</td></tr>
+      <tr><td>Loss</td><td>Classification → cross-entropy; regression → mean squared error</td><td>Cross-entropy</td></tr>
+      <tr><td>Optimiser, learning rate</td><td>Adam with 0.001 is a safe start</td><td>Adam, 0.001, halve on plateau</td></tr>
+      <tr><td>Batch size</td><td>32–256; bigger is faster but needs more memory</td><td>128</td></tr>
+      <tr><td>Epochs</td><td>Set a maximum and use early stopping</td><td>20 max, patience 4</td></tr>
+      <tr><td>Overfitting control</td><td>Dropout, weight decay, early stopping, more data</td><td>All four</td></tr>
+      <tr><td>Fair comparison</td><td>Same data, same split, several seeds</td><td>Same split per seed, 3 seeds</td></tr>
+    </tbody></table></div>
+    <div class="box warn"><b class="tag">The three most common mistakes</b><ol><li>Scaling with statistics from the whole dataset (test information leaks in).</li><li>Choosing settings by looking at test accuracy (use validation for that).</li><li>Reporting one run (it may be luck; use several seeds).</li></ol></div>
+  </div>
+</section>
+
+<!-- ========================================================= 12 -->
+<section id="viva">
+  <div class="kicker">Chapter 12</div>
+  <h2>Questions the committee may ask about the code</h2>
+  <div class="tbl"><table><thead><tr><th>Question</th><th>Where the answer is</th><th>Key points</th></tr></thead><tbody>
+    <tr><td>Where is the model trained?</td><td><code>train_torch_model()</code> in train_and_evaluate.py</td><td>Epoch loop, batch loop, forward → loss → backward → step</td></tr>
+    <tr><td>Which line actually updates the weights?</td><td><code>optimizer.step()</code></td><td>After <code>loss.backward()</code> computes gradients</td></tr>
+    <tr><td>How do you stop overfitting?</td><td>Dropout in cnn_model.py; weight decay, early stopping in training</td><td>Plus keeping the best validation weights</td></tr>
+    <tr><td>How did you avoid data leakage?</td><td><code>prepare_input</code>, Pipeline</td><td>Scaling from training rows only; verify_project check 5</td></tr>
+    <tr><td>Why three splits?</td><td><code>make_splits</code></td><td>Validation chooses when to stop; test used once</td></tr>
+    <tr><td>Why several seeds?</td><td><code>main</code>, <code>aggregate_seeds</code></td><td>Mean ± std; shows the result is not luck</td></tr>
+    <tr><td>How many parameters, and why?</td><td>cnn_model.py</td><td>285,941 (Chapter 06 arithmetic); 92% in one dense layer</td></tr>
+    <tr><td>Why flatten, not average pooling?</td><td><code>ConstellationCNN</code></td><td>Cluster position is the information</td></tr>
+    <tr><td>How is the data made?</td><td><code>simulate_received_symbols</code></td><td>8-step chain; validated against exact cumulants</td></tr>
+    <tr><td>How do you know the numbers in the paper are right?</td><td>make_macros.py, verify_project.py</td><td>Numbers generated from result files; accuracy recomputed from saved weights</td></tr>
+    <tr><td>What does softmax do?</td><td>experiment_confidence.py</td><td>Turns scores into probabilities summing to 1</td></tr>
+    <tr><td>Who wrote the code?</td><td>—</td><td>Claude Code, under our direction; we designed the study and can explain every part</td></tr>
+  </tbody></table></div>
+</section>
+
+<!-- ========================================================= 13 -->
+<section id="glossary">
+  <div class="kicker">Chapter 13</div>
+  <h2>Glossary</h2>
+  <div class="tbl"><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td>Argument / parameter (function)</td><td>A value passed into a function</td></tr>
+    <tr><td>argmax</td><td>The position of the largest value; used to pick the predicted class</td></tr>
+    <tr><td>Array / tensor</td><td>A grid of numbers; NumPy calls it an array, PyTorch a tensor</td></tr>
+    <tr><td>Backpropagation</td><td>Computing how each weight should change to reduce the loss</td></tr>
+    <tr><td>BatchNorm</td><td>A layer that rescales values to mean 0, variance 1</td></tr>
+    <tr><td>Class (Python)</td><td>A blueprint for objects, with data and functions (methods)</td></tr>
+    <tr><td>Convolution</td><td>Sliding a small learnable filter across an image to detect patterns</td></tr>
+    <tr><td>Cross-entropy</td><td>The standard classification loss</td></tr>
+    <tr><td>Decorator</td><td>An <code>@</code> line that changes how the function below behaves</td></tr>
+    <tr><td>Dictionary</td><td>Key → value lookup table, written with <code>{}</code></td></tr>
+    <tr><td>Dropout</td><td>Randomly zeroing some values during training to prevent overfitting</td></tr>
+    <tr><td>Early stopping</td><td>Stopping training when validation accuracy stops improving</td></tr>
+    <tr><td>Epoch</td><td>One full pass over the training data</td></tr>
+    <tr><td>Gradient</td><td>Direction and size of change that increases the loss; we step the opposite way</td></tr>
+    <tr><td>Hyperparameter</td><td>A setting we choose (learning rate, batch size), not learned</td></tr>
+    <tr><td>Import / module</td><td>Loading code from another file or library</td></tr>
+    <tr><td>JSON</td><td>A text format for saving dictionaries and lists</td></tr>
+    <tr><td>Learning rate</td><td>How big each weight update is</td></tr>
+    <tr><td>List comprehension</td><td><code>[x for x in list if condition]</code>: build a list in one line</td></tr>
+    <tr><td>Loss</td><td>One number measuring how wrong the model is</td></tr>
+    <tr><td>Mask</td><td>Array of True/False used to select elements</td></tr>
+    <tr><td>MaxPool</td><td>Keeping the largest value in each small window</td></tr>
+    <tr><td>Optimiser (Adam)</td><td>The rule that updates weights using gradients</td></tr>
+    <tr><td>Pipeline</td><td>scikit-learn chain of steps, e.g. scaler then classifier</td></tr>
+    <tr><td>ReLU</td><td>max(0, x): the standard activation function</td></tr>
+    <tr><td>Seed</td><td>Fixed start for random numbers, for reproducibility</td></tr>
+    <tr><td>Softmax</td><td>Turns scores into probabilities that sum to 1</td></tr>
+    <tr><td>state_dict</td><td>PyTorch's dictionary of all a model's weights; saved to <code>.pt</code> files</td></tr>
+    <tr><td>Stratify</td><td>Split so each group keeps the same proportion in every set</td></tr>
+    <tr><td>Vectorisation</td><td>Doing maths on whole arrays at once instead of Python loops</td></tr>
+    <tr><td>Weight</td><td>One adjustable number inside a model</td></tr>
+  </tbody></table></div>
+</section>
+
+<footer>
+  Built from the code in github.com/techi101/optical-mfi-representation (commit of 24 Sep 2026). Code written by Claude Code under the direction of Nitesh Kumar Yadav, Yash Mittal and Sajan, NSUT East Campus. Supervisor: Dr. Manisha Khulbe.
+</footer>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  try { if (window.hljs) { document.querySelectorAll('pre code.language-python').forEach(function (el) { window.hljs.highlightElement(el); }); } } catch (e) {}
+</script>
+
+</body>
+</html>
